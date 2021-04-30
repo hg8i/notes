@@ -65,6 +65,7 @@ class filesView:
             Either relevant path
             Or via some pattern
         """
+        xprint("Filtering mode",self._filterMode)
         if self._filterMode=="path":
             path = os.path.join(settings["dataPath"],self._relpath)
             allDirs = os.listdir(path)
@@ -74,6 +75,7 @@ class filesView:
             # reverse sort by date in file name
             self._listOfFiles = sorted(self._listOfFiles, key=lambda x:x["rdate"],reverse=1)
         elif self._filterMode=="tags":
+            xprint("Filtering for",self._filterTags)
             # use index file to only add lists via tags
             index = pickle.load(open(settings["indexPath"]))
             noteNamesByTag = [ set(index[tag]) for tag in self._filterTags if tag in index.keys()]
@@ -85,6 +87,10 @@ class filesView:
             paths = [os.path.join(path,i) for i in namesWithEachTag]
             self._listOfFiles = [self._prepName(n) for n in paths]
             self._listOfFiles = sorted(self._listOfFiles, key=lambda x:x["rdate"],reverse=1)
+
+        xprint("List of files to show")
+        for f in self._listOfFiles:
+            xprint("==>",f)
 
 
         self._index = 0

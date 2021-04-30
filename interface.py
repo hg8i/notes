@@ -39,7 +39,7 @@ class interface:
         self._cv = commandView(self._commandScreen)
         self._nv = notesView(self._notesScreen)
         self._fv = filesView(self._filesScreen,self._nv)
-        self._functions = functions(self._nv,self._fv)
+        self._functions = functions(self._nv,self._fv,self._screen)
 
         self._selectedWindow = "files"
         self._numberBuffer = 0
@@ -88,14 +88,15 @@ class interface:
             self._fv.ping()
 
         elif function in ["editAttributes","e"]:
-            noteName = self._functions.editAttributes(self._screen,args)
+            noteName = self._functions.editAttributes(args)
             # if noteName: self._nv.load(noteName)
             # update file list
             self._fv.ping()
             self._nv.ping()
 
-        elif function in ["cancelFilter","f"]:
-            noteName = self._functions.filterNotes()
+        elif function in ["updatedb","remakeIndex","u"]:
+            noteName = self._functions.remakeIndex(args)
+
         elif function in ["filterNotes","f"]:
             noteName = self._functions.filterNotes(args)
 
@@ -140,7 +141,7 @@ class interface:
 
             self._numberBuffer*=10
             self._numberBuffer+=int(chr(char))
-            utils._text(self._screen,10,10,self._numberBuffer,color=3)
+            # utils._text(self._screen,10,10,self._numberBuffer,color=3)
             self._fv.goTo(self._numberBuffer)
             self._lastNumberPushedTime = time.time()
         else:

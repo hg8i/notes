@@ -29,7 +29,7 @@ class editDialog:
         # self._optionRegularColor   = 0
         # self._optionFocusColor     = 0
 
-        window.bkgd(curses.color_pair(self._optionRegularColor))
+        # window.bkgd(curses.color_pair(self._optionRegularColor))
 
 
         self._focus = 0
@@ -65,12 +65,12 @@ class editDialog:
             Creates self._inputs, which stores the textboxes
         """
         # draw date info
-        dateLine = "Day: {0}".format(1)
-        utils._text(self._window,0,2,dateLine, color=self._optionRegularColor)
+        # dateLine = "Day: {0}".format(1)
+        # utils._text(self._window,0,2,dateLine, color=self._optionRegularColor)
 
         # draw id in bottom 
-        idLine = "ID: {0}".format("1")
-        utils._text(self._window,self._screenY-1,2,idLine, color=self._optionRegularColor)
+        # idLine = "ID: {0}".format("1")
+        # utils._text(self._window,self._screenY-1,2,idLine, color=self._optionRegularColor)
 
         # debug
         utils._text(self._window,0,self._screenX-5,self._focus, color=self._optionRegularColor)

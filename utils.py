@@ -82,6 +82,8 @@ def getData(path):
     """ Safe way to get data files
     """
     data = pickle.load(open(path))
+    if "tags" not in data.keys():
+        data["tags"] = []
     if "uniqueFileCounter" not in data.keys():
         data["uniqueFileCounter"] = 0
     return data
@@ -101,28 +103,23 @@ def uniquifyPath(path):
         c+=1
     return c,f(c)
 
-
-# # bright
-# color_green=10
-# color_cyan=6
-# color_red=9
-# color_white=15
-# color_purple=5
-# color_yellow=11
-# color_black=0
-# color_blue=33
-
 color_green=40
-color_cyan=12
 color_red=197
 color_white=231
 color_purple=201
 color_yellow=220
 color_black=0
+
+color_cyan=123
+color_dark_cyan=39
+
 color_blue=45
+color_dark_blue=25
 
 color_dark_green=28
-color_dark_cyan=32
 color_dark_red=88
 color_dark_yellow=178
-color_dark_blue=25
+
+color_dark_grey= 235
+color_mid_grey= 244
+color_light_grey= 252

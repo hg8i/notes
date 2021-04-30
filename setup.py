@@ -15,25 +15,25 @@ from subprocess import call
 
 
 settings = {}
-settings["bkColorCommandView"] = utils.color_dark_yellow
-settings["fgColorCommandView"] = utils.color_red
+settings["bkColorCommandView"]         = utils.color_dark_blue
+settings["fgColorCommandView"]         = utils.color_white
 
-settings["bkColorNotesView"] = utils.color_dark_blue
-settings["fgColorNotesView"] = utils.color_cyan
+settings["bkColorNotesView"]           = utils.color_dark_blue
+settings["fgColorNotesView"]           = utils.color_white
 
-settings["bkColorFilesView"] = utils.color_dark_green
-settings["fgColorFilesView"] = utils.color_white
-settings["bkColorFilesViewHighlight"] = utils.color_white
-settings["fgColorFilesViewHighlight"] = utils.color_dark_green
+settings["bkColorFilesView"]           = utils.color_dark_cyan
+settings["fgColorFilesView"]           = utils.color_white
+settings["bkColorFilesViewHighlight"]  = utils.color_white
+settings["fgColorFilesViewHighlight"]  = utils.color_dark_cyan
 
 # dialog box
-settings["dialogDialogFocus"] = utils.color_cyan
-settings["dialogDialogBackground"] = utils.color_dark_red
+settings["dialogDialogFocus"]          = utils.color_blue
+settings["dialogDialogBackground"]     = utils.color_white
 
 
 
 settings["filesWidth"] = 30
-settings["timeout"] = 2
+settings["timeout"] = 2 # time before number reset
 
 settings["dataPath"] = "/home/prime/dev/notes/data"
 settings["trashPath"] = "/home/prime/dev/notes/trash"
