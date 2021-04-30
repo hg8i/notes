@@ -41,9 +41,10 @@ class notesView:
     def load(self,noteName=None):
         """ Load given note name
         """
+        xprint("Loading NV",noteName,"exists",os.path.exists(noteName))
         if noteName:
-            if os.path.exists(noteName):
-                self._noteDir  = os.path.join(settings["dataPath"],noteName)
+            self._noteDir  = os.path.join(settings["dataPath"],noteName)
+            if os.path.exists(self._noteDir):
                 self._notePath = os.path.join(self._noteDir,"note.md")
                 self._filesPath = os.path.join(self._noteDir,"data")
                 self._noteData = os.path.join(self._noteDir,"meta.pickle")

@@ -33,10 +33,12 @@ settings["dialogDialogBackground"] = utils.color_dark_red
 
 
 settings["filesWidth"] = 30
+settings["timeout"] = 2
 
 settings["dataPath"] = "/home/prime/dev/notes/data"
 settings["trashPath"] = "/home/prime/dev/notes/trash"
 settings["indexPath"] = "/home/prime/dev/notes/index.pickle"
+settings["commandHistoryPath"] = "/home/prime/dev/notes/history.txt"
 
 os.popen("rm -f log.txt")
 def xprint(*string):

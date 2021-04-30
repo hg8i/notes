@@ -21,6 +21,14 @@ class interface:
         curses.curs_set(0)
         os.popen("rm log.txt")
 
+        # setup files
+        if not os.path.exists(settings["trashPath"]):
+            os.mkdir(settings["trashPath"])
+        if not os.path.exists(settings["dataPath"]):
+            os.mkdir(settings["dataPath"])
+        if not os.path.exists(settings["commandHistoryPath"]):
+            open(settings["commandHistoryPath"],"w").write("")
+
         if not os.path.exists(settings["indexPath"]):
             index = {}
             data = pickle.dump(index,open(settings["indexPath"],"w"))
@@ -34,9 +42,12 @@ class interface:
         self._functions = functions(self._nv,self._fv)
 
         self._selectedWindow = "files"
+        self._numberBuffer = 0
+        self._lastNumberPushedTime = 0
 
         # self._nv.load("290421-abc.note")
         self._nv.load(self._fv._curName())
+        xprint("Loaded",self._fv._curName())
 
 
         # setup
@@ -121,6 +132,20 @@ class interface:
     def _processCharacter(self,char):
         """ Process each character
         """
+
+        # handel number entries
+        if char>=ord("0") and char<=ord("9"):
+            if time.time()-self._lastNumberPushedTime>settings["timeout"]:
+                self._numberBuffer=0
+
+            self._numberBuffer*=10
+            self._numberBuffer+=int(chr(char))
+            utils._text(self._screen,10,10,self._numberBuffer,color=3)
+            self._fv.goTo(self._numberBuffer)
+            self._lastNumberPushedTime = time.time()
+        else:
+            self._numberBuffer = 0
+
         if char==ord("q"):
             self._parseCommand("q")
 

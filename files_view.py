@@ -120,6 +120,15 @@ class filesView:
         if not self._listOfFiles: return None
         return self._listOfFiles[self._index]["name"]
 
+    def goTo(self,target):
+        """ Go to entry in index
+            If invalid, skip
+        """
+        if target<0: return
+        if target>=len(self._listOfFiles): return
+        self._index = target
+        self._display()
+        self._nv.load(self._curName())
 
     def processCharacter(self,char):
         """ Process each character

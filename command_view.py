@@ -22,6 +22,9 @@ class commandView:
         self.update()
         # self.run()
 
+        self._history = open(settings["commandHistoryPath"]).readlines()
+        self._history = [i.rstrip() for i in self._history]
+
         # _drawBox(self._window,0,0,self._screenY,self._screenX," ",self._optionBackground)
         # self._screen.bkgd(' ', settings["bkColorCommandView"] | curses.A_BOLD | curses.A_REVERSE)
 
@@ -40,7 +43,7 @@ class commandView:
         # add initial string if given
         if init: self._text.set(init)
 
-        text = self._text.edit(checkInput)
+        text = self._text.edit(checkInput,history=list(self._history))
         self._text.reset()
         # self.update()
         curses.curs_set(0)
@@ -50,6 +53,11 @@ class commandView:
         # remove initial string
         if init: text=text[len(init):]
 
+        # save new commend into history
+        if text:
+            self._history.append(text)
+            open(settings["commandHistoryPath"],"a").write(text+"\n")
+        xprint(self._history)
 
         return text
 

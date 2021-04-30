@@ -15,7 +15,7 @@ def _print(*string):
 
 class Textbox:
 
-    def __init__(self, window,ncols, insert_mode=False,color=8,commandMode=True):
+    def __init__(self, window,ncols, insert_mode=False,history=None,color=8,commandMode=True):
         pass
         self._commandMode=commandMode
         self._window=window
@@ -25,6 +25,8 @@ class Textbox:
         self._y, self._x = window.getyx()
         self._ncols = ncols-2
         self._window.keypad(1) # needed for arrow keys!
+
+        self._historyPos=0
 
         self._textColor = curses.color_pair(color)
 
@@ -51,8 +53,12 @@ class Textbox:
         self._doScrolling()
         self._update()
 
-    def edit(self, validate=None):
+    def edit(self, validate=None,history=None):
         "Edit in the widget window and collect the results."
+        self._history=history
+        if history:
+            self._history.append("") # new buffer
+            self._history=list(reversed(history))
         while 1:
             ch = self._window.getch()
             if validate:
@@ -106,6 +112,27 @@ class Textbox:
         # return when empty
         if self._commandMode and len(self._buffer)==0:
             return 0
+
+        # for command line
+        if self._history and c in [curses.KEY_UP,curses.KEY_DOWN]:
+
+            # update history with modified buffer
+            text = "".join([chr(i) for i in self._buffer])
+            self._history[self._historyPos] = text[1:]
+            # move to new position
+            if c==curses.KEY_UP:
+                self._historyPos+=1
+                self._historyPos=min(len(self._history)-1,self._historyPos)
+            elif c==curses.KEY_DOWN:
+                self._historyPos-=1
+                self._historyPos=max(0,self._historyPos)
+
+            # update visible line
+            nextLine = self._history[self._historyPos]
+            nextLine=":{}".format(nextLine)
+            self.set(nextLine)
+        # _print("key",c)
+
 
         if c==curses.KEY_LEFT:
             self._cur-=1
