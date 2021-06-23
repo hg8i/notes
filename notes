@@ -1,0 +1,10 @@
+#! /bin/env python2
+
+from setup import *
+import interface
+
+wrapper(interface.main)
+
+
+
+
