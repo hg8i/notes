@@ -129,6 +129,8 @@ class interface:
         # copy to tmp note path
         cmd = "cp {} {}".format(notePath,tmpNotePath)
         os.popen(cmd)
+        cmd = "touch {}".format(notePath)
+        os.popen(cmd)
 
 
         curses.endwin()
