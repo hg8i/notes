@@ -114,6 +114,7 @@ class interface:
     def _resolveDiffs(self,tmpPath,notePath):
         """ Resolve conflict between files
         """
+        quit()
         EDITOR = os.environ.get("EDITOR","vimdiff")
         call([EDITOR, notePath,tmpPath])
 
@@ -129,8 +130,9 @@ class interface:
         # copy to tmp note path
         cmd = "cp {} {}".format(notePath,tmpNotePath)
         os.popen(cmd)
-        cmd = "touch {}".format(notePath)
-        os.popen(cmd)
+
+        # cmd = "touch {}".format(notePath)
+        # os.popen(cmd)
 
 
         curses.endwin()
@@ -140,8 +142,13 @@ class interface:
 
         # copy back, if file is un-modified
         stopTime = os.path.getmtime(notePath)
+        xprint("Stop time",stopTime)
+        xprint("Start time",startTime)
         if startTime==stopTime:
             cmd = "cp {} {}".format(tmpNotePath,notePath)
+            os.popen(cmd)
+            # update time (not done by copy?)
+            cmd = "touch {}".format(notePath)
             os.popen(cmd)
         else:
             # resolve differences
