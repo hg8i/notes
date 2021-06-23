@@ -114,7 +114,6 @@ class interface:
     def _resolveDiffs(self,tmpPath,notePath):
         """ Resolve conflict between files
         """
-        quit()
         EDITOR = os.environ.get("EDITOR","vimdiff")
         call([EDITOR, notePath,tmpPath])
 
