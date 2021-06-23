@@ -35,7 +35,8 @@ settings["dialogDialogBackground"]     = utils.color_white
 settings["filesWidth"] = 30
 settings["timeout"] = 2 # time before number reset
 
-settings["dataPath"] = "/home/prime/dev/notes/data"
+settings["dataPath"] = "/home/prime/sshfs/lxp/notes/data"
+# settings["dataPath"] = "/home/prime/dev/notes/data"
 settings["trashPath"] = "/home/prime/dev/notes/trash"
 settings["indexPath"] = "/home/prime/dev/notes/index.pickle"
 settings["commandHistoryPath"] = "/home/prime/dev/notes/history.txt"
