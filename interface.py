@@ -111,15 +111,40 @@ class interface:
         elif function in ["quit","q"]:
             quit()
 
+    def _resolveDiffs(self,tmpPath,notePath):
+        """ Resolve conflict between files
+        """
+        EDITOR = os.environ.get("EDITOR","vimdiff")
+        call([EDITOR, notePath,tmpPath])
+
+
     def _edit(self):
         """ Edit current file
         """
+        # get time that editing started
         notePath = self._nv.curPath()["note"]
+        tmpNotePath = "/tmp/{}{}".format(time.time(),notePath.replace("/","-"))
+        startTime = os.path.getmtime(notePath)
+
+        # copy to tmp note path
+        cmd = "cp {} {}".format(notePath,tmpNotePath)
+        os.popen(cmd)
+
+
         curses.endwin()
         EDITOR = os.environ.get("EDITOR","vim")
-        call([EDITOR, notePath])
-        # call([EDITOR, "-c 'set filetype=md'", notePath])
-        # call([EDITOR, "-c ':set filetype=md'", notePath])
+        call([EDITOR, tmpNotePath])
+
+
+        # copy back, if file is un-modified
+        stopTime = os.path.getmtime(notePath)
+        if startTime==stopTime:
+            cmd = "cp {} {}".format(tmpNotePath,notePath)
+            os.popen(cmd)
+        else:
+            # resolve differences
+            self._resolveDiffs(tmpNotePath,notePath)
+
         self._screen.refresh()
         # tell note view to update
         self._nv.ping()

@@ -1,4 +1,5 @@
 data
 trash
 *txt
+*pyc
 *pickle
