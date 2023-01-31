@@ -1,26 +1,33 @@
 import math, sys, time, copy
 import curses
 from curses import wrapper
-import curses, sys, os, time
-from datetime import date
-# import curses.textpad as textpad
-import textpad
-import cPickle as pickle
-# import editDialog
+import curses, sys, os, time, string
+# from datetime import date
+from datetime import datetime
 import functools
-import utils,glob
+import glob,utils
 from subprocess import call
 
+import glob,json,os,re
+import pickle
+from collections import defaultdict
 
+os.popen("rm log.txt"); time.sleep(0.01)
+def log(*text):
+    f = open("log.txt","a")
+    text = " ".join([str(t) for t in text])
+    f.write(str(text)+"\n")
+    f.close()
 
 
 settings = {}
+
+settings["filesWidth"] = 30
+
 settings["bkColorCommandView"]         = utils.color_dark_blue
 settings["fgColorCommandView"]         = utils.color_white
-
 settings["bkColorNotesView"]           = utils.color_dark_blue
 settings["fgColorNotesView"]           = utils.color_white
-
 settings["bkColorFilesView"]           = utils.color_dark_cyan
 settings["fgColorFilesView"]           = utils.color_white
 settings["bkColorFilesViewHighlight"]  = utils.color_white
@@ -32,19 +39,44 @@ settings["dialogDialogBackground"]     = utils.color_white
 
 
 
-settings["filesWidth"] = 30
-settings["timeout"] = 2 # time before number reset
+settings["commandHistoryPath"] = "/home/prime/dev/notes2/history.txt"
+settings["dataPath"] = "/home/prime/dev/notes2/data"
+settings["tmpPath"] = "/tmp/notetmp"
+settings["delPath"] = "/tmp/notetrash"
 
-settings["dataPath"] = "/home/prime/sshfs/lxp/notes/data"
-# settings["dataPath"] = "/home/prime/dev/notes/data"
-settings["trashPath"] = "/home/prime/dev/notes/trash"
-settings["indexPath"] = "/home/prime/dev/notes/index.pickle"
-settings["commandHistoryPath"] = "/home/prime/dev/notes/history.txt"
+shortcutMap = defaultdict(lambda:None)
+shortcutMap["p"] = "pickle"
+shortcutMap["k"] = "key"
+shortcutMap["n"] = "new"
+shortcutMap["d"] = "delete"
+shortcutMap["c"] = "change"
+shortcutMap["e"] = "edit"
+shortcutMap["s"] = "sort"
+shortcutMap["q"] = "quit"
+shortcutMap["h"] = "help"
+settings["shortcutMap"] = shortcutMap
 
-os.popen("rm -f log.txt")
-def xprint(*string):
-    string = [str(s) for s in string]
-    string = " ".join(string)
-    f = open("log.txt","a")
-    f.write(string+"\n")
-    f.close()
+hotkeyMap = defaultdict(lambda:None)
+hotkeyMap["/"] = "search"
+hotkeyMap["\t"] = "cfocus"
+hotkeyMap["c"] = "change"
+hotkeyMap["e"] = "edit"
+hotkeyMap["q"] = "quit"
+hotkeyMap["h"] = "help"
+hotkeyMap[":"] = "command"
+settings["hotkeyMap"] = hotkeyMap
+
+helpMessage = defaultdict(lambda:None)
+helpMessage["key"]    = "[arg] set search key (tag,name,modified,all)"
+helpMessage["sort"]   = "[arg] sort note list (name,modified,created,tag)"
+helpMessage["pickle"] = "      write index pickle file"
+helpMessage["new"]    = "      new note"
+helpMessage["delete"] = "      delete note"
+helpMessage["change"] = "      edit note"
+helpMessage["edit"]   = "      edit metadata"
+helpMessage["quit"]   = "      exit notes"
+helpMessage["help"]   = "      display this message"
+helpMessage["search"] = "      search notes with regex"
+helpMessage["command"]= "      run a command in the prompt"
+helpMessage["cfocus"] = "      change window focus (tab)"
+settings["helpMessage"] = helpMessage

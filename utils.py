@@ -1,5 +1,5 @@
 import curses, sys, os, time
-import cPickle as pickle
+# import cPickle as pickle
 
 
 def _print(*string):

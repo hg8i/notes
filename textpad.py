@@ -3,15 +3,7 @@
 
 import curses
 import curses.ascii
-
-def _print(*string):
-    string = [str(s) for s in string]
-    string = " ".join(string)
-    f = open("log.txt","a")
-    f.write(string+"\n")
-    f.close()
-
-
+from setup import *
 
 class Textbox:
 
@@ -49,6 +41,7 @@ class Textbox:
         """ Set buffer to text
         """
         self._buffer=[ord(i) for i in text]
+        log("Buffer:",self._buffer)
         self._cur=len(self._buffer)
         self._doScrolling()
         self._update()
@@ -131,10 +124,8 @@ class Textbox:
             nextLine = self._history[self._historyPos]
             nextLine=":{}".format(nextLine)
             self.set(nextLine)
-        # _print("key",c)
 
-
-        if c==curses.KEY_LEFT:
+        elif c==curses.KEY_LEFT:
             self._cur-=1
         elif c==curses.KEY_RIGHT:
             self._cur+=1
@@ -159,6 +150,7 @@ class Textbox:
             except: return 1
             self._buffer.insert(self._cur,c)
             self._cur+=1
+            log("Buffer type:",self._buffer)
 
 
         self._doScrolling()
@@ -198,4 +190,3 @@ if __name__ == '__main__':
 
 
     str = curses.wrapper(test_editbox)
-    print 'Contents of text box:', repr(str)

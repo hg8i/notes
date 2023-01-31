@@ -2,8 +2,9 @@ from setup import *
 
 
 class notesView:
-    def __init__(self,screen):
+    def __init__(self,screen,index):
         self._screen = screen
+        self._index = index
 
         curses.init_pair(2, settings["fgColorNotesView"],settings["bkColorNotesView"])
         self._color=2
@@ -37,24 +38,35 @@ class notesView:
         self._screen.addstr(label,color)
 
 
-    
-    def load(self,noteName=None):
+    def load(self,toLoad):
         """ Load given note name
         """
-        xprint("Loading NV",noteName)
-        if noteName:
-            xprint("Loading NV",noteName,"exists",os.path.exists(noteName))
-            self._noteDir  = os.path.join(settings["dataPath"],noteName)
-            if os.path.exists(self._noteDir):
-                self._notePath = os.path.join(self._noteDir,"note.md")
-                self._filesPath = os.path.join(self._noteDir,"data")
-                self._noteData = os.path.join(self._noteDir,"meta.pickle")
-                self._metaData = pickle.load(open(self._noteData))
-                self._noteName=noteName
-                self._noteText = open(self._notePath,"r").readlines()
-            else:
-                self._noteName=None
-                # quit()
+        log("Loading NV",toLoad)
+        # assert type(toLoad) in [int,str]
+        if toLoad==None or len(self._index)==0:
+            log("No note to load")
+            # load nothing
+            self._noteName = None
+            self._metaData = None
+            self._noteText = None
+
+        else:
+
+            if type(toLoad) == int:
+                noteName=self._index[toLoad]
+            elif type(toLoad) == str:
+                noteName=toLoad
+
+
+            path = self._index.getPath(noteName)
+            pathMeta = os.path.join(path,"meta.json")
+            pathText = os.path.join(path,"note.md")
+
+            self._noteName = noteName
+            self._metaData = json.load(open(pathMeta,"r"))
+            if os.path.exists(pathText):
+                self._noteText = open(pathText,"r").readlines()
+            else:self._noteText=""
 
         self._display()
 
@@ -63,14 +75,14 @@ class notesView:
         """
         self.load(self._noteName)
 
-    def curPath(self):
-        """ Return current path of editable file
-        """
-        ret={}
-        ret["files"] = self._filesPath
-        ret["note"] = self._notePath
-        ret["data"] = self._noteData
-        return ret
+    # def curPath(self):
+    #     """ Return current path of editable file
+    #     """
+    #     ret={}
+    #     ret["files"] = self._filesPath
+    #     ret["note"] = self._notePath
+    #     ret["data"] = self._noteData
+    #     return ret
 
     def _trimLine(self,line):
         """ Trim line to window size
@@ -92,14 +104,22 @@ class notesView:
             self._screen.refresh()
             return
 
+    # data["tags"] = allTags[:nTags]
+    # data["created"] = dateGen()
+    # data["modified"] = dateGen()
+    # data["name"] = name
+    # data["shortname"] = name
+    # data["author"] = "aaron"
+    # data["dirName"] = f"{d}-{name}.note"
+
         # Header text
-        line = "Name: {}".format(self._metaData["displayName"])
+        line = "Name: {}".format(self._metaData["name"])
         self._text(1,1,self._trimLine(line),bold=True)
         line = "Tags: {}".format(", ".join(self._metaData["tags"]))
         self._text(2,1,self._trimLine(line),bold=True)
-        line = "Created: {}".format(self._metaData["displayCreated"])
+        line = "Created: {}".format(self._metaData["created"])
         self._text(3,1,self._trimLine(line),bold=True)
-        line = "Path: {}".format(self._metaData["dirPath"])
+        line = "Modified: {}".format(self._metaData["modified"])
         self._text(4,1,self._trimLine(line),bold=True)
 
         # trim text based on screen height and scrolling

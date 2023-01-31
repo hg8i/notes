@@ -6,7 +6,7 @@ from setup import *
 # import logging
 # import numpy as np
 # import datetime
-# import textpad
+import textpad
 
 
 # from backend import *
@@ -17,6 +17,55 @@ Pop-up dialog for editing an event
 Originally from isoplan
 """
 
+class popupDialog:
+    def __init__(self,window,data):
+        self._data = data
+        self._window = window
+        self._optionFocusColor     = settings["dialogDialogFocus"]
+        self._optionRegularColor   = settings["dialogDialogBackground"]
+        self._optionBackground     = settings["dialogDialogBackground"]
+
+        self.draw()
+
+    def draw(self):
+
+        self._screenY,self._screenX = self._window.getmaxyx()
+        utils._drawBox(self._window,0,0,self._screenY,self._screenX," ",self._optionBackground)
+        self._window.border()
+        # self._drawData()
+
+        text = "Help"
+        utils._text(self._window,0,3,text, color=self._optionRegularColor)
+
+        text = "Shows: function, hotkey, shortcut, description"
+        utils._text(self._window,2,3,text, color=self._optionRegularColor)
+
+        text = " "*9+"H  F"
+        utils._text(self._window,4,3,text, color=self._optionRegularColor)
+
+        commands = sorted(list(self._data.keys()),key=lambda x: "[arg]" not in self._data[x]["help"])
+
+        for iKey, command in enumerate(commands):
+            shortcut = self._data[command]["shortcut"]
+            hotkey = self._data[command]["hotkey"]
+            message = self._data[command]["help"]
+            text = f"{command}"
+            text+= " "*(9-len(text))
+            text+= f"{hotkey}  {shortcut}"
+            text+= " "*(15-len(text))
+            text+= f"{message}"
+            text = text.replace("\t","t")
+            yPos = iKey+5
+            xPos = 3
+            utils._text(self._window,yPos+0,xPos,text, color=self._optionRegularColor)
+
+    def run(self):
+        first = True
+        first = False
+        c = self._window.getch()
+        return
+
+
 class editDialog:
     def __init__(self,window,data):
         self._data = dict(data)
@@ -25,11 +74,6 @@ class editDialog:
         self._optionFocusColor     = settings["dialogDialogFocus"]
         self._optionRegularColor   = settings["dialogDialogBackground"]
         self._optionBackground     = settings["dialogDialogBackground"]
-
-        # self._optionRegularColor   = 0
-        # self._optionFocusColor     = 0
-
-        # window.bkgd(curses.color_pair(self._optionRegularColor))
 
 
         self._focus = 0
@@ -64,13 +108,6 @@ class editDialog:
         """ Draw data corresponding to this day 
             Creates self._inputs, which stores the textboxes
         """
-        # draw date info
-        # dateLine = "Day: {0}".format(1)
-        # utils._text(self._window,0,2,dateLine, color=self._optionRegularColor)
-
-        # draw id in bottom 
-        # idLine = "ID: {0}".format("1")
-        # utils._text(self._window,self._screenY-1,2,idLine, color=self._optionRegularColor)
 
         # debug
         utils._text(self._window,0,self._screenX-5,self._focus, color=self._optionRegularColor)

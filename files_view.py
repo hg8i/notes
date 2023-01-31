@@ -3,9 +3,10 @@ from setup import *
 
 
 class filesView:
-    def __init__(self,screen,nv):
+    def __init__(self,screen,noteview,index):
         self._screen = screen
-        self._nv = nv
+        self._index = index
+        self._nv = noteview
         screenY,screenX = self._screen.getmaxyx()
 
         curses.init_pair(3, settings["fgColorFilesView"],settings["bkColorFilesView"])
@@ -17,20 +18,26 @@ class filesView:
         self._filterMode = "path"
         self._filterTags = None
 
+        self._scroll = 0
+
         # file list info
-        self._listOfFiles = []
         self._relpath = ""
-        self._index =0
+        self._fileIndex =0
+        self._nv.load(0)
+
+        self._screenY,self._screenX = self._screen.getmaxyx()
+        self._nPerScroll = self._screenY-4
+
 
         self.ping()
 
     def ping(self):
         """ Ping and update file list
         """
-        self._updateListOfFiles()
+        # TODO: Update so that it only loads a note when the index changes
+        self._fileIndex=min(self._fileIndex,len(self._index)-1)
         self._display()
-
-        # self.update()
+        self._nv.load(self._fileIndex)
 
     def _text(self,y,x,s,color=None):
         utils._move(self._screen,int(y),int(x))
@@ -60,41 +67,6 @@ class filesView:
         ret["rdate"] = int(ret["name"][4:6]+ret["name"][2:4]+ret["name"][0:2])
         return ret
 
-    def _updateListOfFiles(self):
-        """ Update list of files,
-            Either relevant path
-            Or via some pattern
-        """
-        xprint("Filtering mode",self._filterMode)
-        if self._filterMode=="path":
-            path = os.path.join(settings["dataPath"],self._relpath)
-            allDirs = os.listdir(path)
-            allDirs = [os.path.join(path,p) for p in allDirs]
-            # allNames = [os.path.basename(i) for i in allDirs]
-            self._listOfFiles = [self._prepName(n) for n in allDirs]
-            # reverse sort by date in file name
-            self._listOfFiles = sorted(self._listOfFiles, key=lambda x:x["rdate"],reverse=1)
-        elif self._filterMode=="tags":
-            xprint("Filtering for",self._filterTags)
-            # use index file to only add lists via tags
-            index = pickle.load(open(settings["indexPath"]))
-            noteNamesByTag = [ set(index[tag]) for tag in self._filterTags if tag in index.keys()]
-            if noteNamesByTag:
-                namesWithEachTag = functools.reduce(lambda a,b: a&b, noteNamesByTag)
-            else:namesWithEachTag=[]
-            # reverse sort by date in file name
-            path = os.path.join(settings["dataPath"],self._relpath)
-            paths = [os.path.join(path,i) for i in namesWithEachTag]
-            self._listOfFiles = [self._prepName(n) for n in paths]
-            self._listOfFiles = sorted(self._listOfFiles, key=lambda x:x["rdate"],reverse=1)
-
-        xprint("List of files to show")
-        for f in self._listOfFiles:
-            xprint("==>",f)
-
-
-        self._index = 0
-
     def setMode(self,mode,tags=None):
         """ Set mode for updating list of files
         """ 
@@ -102,59 +74,131 @@ class filesView:
         if mode=="tags":
             self._filterTags = tags
 
+    def refreshIndex(self):
+        self._fileIndex = 0
+        self.ping()
+
+    def getCurrentFileName(self):
+        if not len(self._index): return None
+        return self._index[self._fileIndex]
+
     def _display(self):
         """ Update display with list of files
         """
+
         self.update()
 
-        if len(self._listOfFiles)==0:
+        if len(self._index)==0:
             self._text(1,1,"[No Notes in Selection]")
 
-        for iEntry,entry in enumerate(self._listOfFiles):
-            line = "{}: {}".format(iEntry,entry["displayName"])
+        scroll = self._scroll
+        lo = scroll
+        hi = scroll+self._nPerScroll
+        for iName,shortname in enumerate(self._index[lo:hi]):
+            if iName>self._screenY-3: 
+                self._text(self._screenY-1,self._screenX-4,"...")
+                break
+
+            name = self._index.fullName(shortname)
+            line = "{}: {}".format(int(lo+iName),name)
             line = line[:self._screenX-1]
-            if iEntry==self._index:
-                self._text(iEntry+1,1,line,color=self._colorHighlight)
+
+            if iName+lo==self._fileIndex:
+                self._text(iName+1,1,line,color=self._colorHighlight)
             else:
-                self._text(iEntry+1,1,line)
+                self._text(iName+1,1,line)
+
+
+        # draw index counter at top of screen
+        self._text(0,self._screenX-3,self._fileIndex)
+
+        self._text(0,self._screenX-9,self._scroll)
+
+        # draw search pattern at top of the screen
+        cleanSearchPattern = self._index.getPattern()
+        if cleanSearchPattern:
+            self._text(0,1,cleanSearchPattern)
+
+            # draw search key at top of the screen
+            cleanSearchKey = " | "+self._index.getSearchKey()
+            self._text(0,len(cleanSearchPattern)+1,cleanSearchKey)
+
+        # draw sorting mechanism
+        cleanSort = f"Sort: {self._index.getSort()}"
+        self._text(self._screenY-1,1,cleanSort)
 
         self._screen.refresh()
 
-    def _curName(self):
-        """ Return currently selected name
-        """
-        if not self._listOfFiles: return None
-        return self._listOfFiles[self._index]["name"]
+    def selectName(self,name):
+        """ Select this name """
+        if not name: return
+        self.ping()
+        self.goto(self._index.getIndexOf(name))
 
-    def goTo(self,target):
-        """ Go to entry in index
-            If invalid, skip
-        """
-        if target<0: return
-        if target>=len(self._listOfFiles): return
-        self._index = target
-        self._display()
-        self._nv.load(self._curName())
+    def goto(self,number):
+        self._fileIndex=min(number,len(self._index)-1)
+        self._fileIndex = max(0,self._fileIndex)
+        self._scrollToFileIndex()
+
+
+    def test(self,char):
+        log("test")
+        # log("test",char)
+        # log("LOG:",0,self._screenX-3,self._fileIndex)
+        # quit()
+        # return
+
+    def goNext(self):
+        self._fileIndex+=1
+        if self._fileIndex>=len(self._index):
+            self._fileIndex=0
+        self._protectIndexBounds()
+        self._scrollToFileIndex()
+
+    def goPrev(self):
+        self._fileIndex-=1
+        if self._fileIndex<0:
+            self._fileIndex=len(self._index)-1
+        self._protectIndexBounds()
+        self._scrollToFileIndex()
+
+    def _scrollToFileIndex(self):
+        while self._fileIndex<self._scroll:
+            self._scroll-=1
+        while self._fileIndex>self._scroll+self._nPerScroll-1:
+            self._scroll+=1
+
+    def _protectIndexBounds(self):
+        self._fileIndex = max(0,self._fileIndex)
+        self._fileIndex=min(self._fileIndex,len(self._index)-1)
+
+    def scrollDp(self):
+        self._scroll+=10
+        self._scroll = min(len(self._index),self._scroll)
+        if self._fileIndex<self._scroll:
+            self._fileIndex=self._scroll
+
+    def scrollUp(self):
+        self._scroll-=10
+        self._scroll = max(0,self._scroll)
+        if self._fileIndex>self._scroll+self._nPerScroll-1:
+            self._fileIndex=self._scroll+self._nPerScroll-1
 
     def processCharacter(self,char):
         """ Process each character
         """
-        if False:
-            quit()
 
-        elif char==ord("n"): # scroll down
-            self._index+=1
-            if self._index>=len(self._listOfFiles):
-                self._index=0
-            self._display()
-            self._nv.load(self._curName())
-        elif char==ord("N"): # scroll up
-            self._index-=1
-            if self._index<0:
-                self._index=len(self._listOfFiles)-1
-            self._index = max(0,self._index)
-            self._display()
-            self._nv.load(self._curName())
+        if char==ord("q"):
+            quit()
+        elif char==ord("j"): # scroll down
+            self.goNext()
+        elif char==ord("k"): # scroll up
+            self.goPrev()
+        elif char==ord("d"): # scroll down
+            self.scrollDp()
+        elif char==ord("u"): # scroll up
+            self.scrollUp()
+
 
         # elif char==ord("j"): # scroll down
         #     self._index+=1
@@ -173,19 +217,19 @@ class filesView:
         #     # ping the Note View to update to this
         #     self._nv.load(self._curName())
 
-        self._text(0,self._screenX-3,self._index)
-        self._screen.refresh()
+        self.ping()
+
         return 1
 
-    def select(self,val):
-        """ Indicate this view is selected
-        """
-        if val:
-            self._text(0,1,"x")
-            self._screen.refresh()
-        else:
-            self._display()
-            self._screen.refresh()
+    # def select(self,val):
+    #     """ Indicate this view is selected
+    #     """
+    #     if val:
+    #         self._text(0,1,"x")
+    #         self._screen.refresh()
+    #     else:
+    #         self._display()
+    #         self._screen.refresh()
 
 
     def update(self,screen=None):
@@ -199,3 +243,4 @@ class filesView:
         # self._screen.bkgd(' ', color | curses.A_BOLD | curses.A_REVERSE)
         utils._drawBoxOutline(self._screen,0,0,self._screenY-1,self._screenX-1," ",self._color)
 
+        self._nPerScroll = self._screenY-4

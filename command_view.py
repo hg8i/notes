@@ -1,5 +1,5 @@
-# import textpad
 from setup import *
+import textpad
 
 def checkInput(k):
     # 32 is space
@@ -22,18 +22,16 @@ class commandView:
         self.update()
         # self.run()
 
-        self._history = open(settings["commandHistoryPath"]).readlines()
-        self._history = [i.rstrip() for i in self._history]
-
-        # _drawBox(self._window,0,0,self._screenY,self._screenX," ",self._optionBackground)
-        # self._screen.bkgd(' ', settings["bkColorCommandView"] | curses.A_BOLD | curses.A_REVERSE)
-
+        if os.path.exists(settings["commandHistoryPath"]):
+            self._history = open(settings["commandHistoryPath"]).readlines()
+            self._history = [i.rstrip() for i in self._history]
+        else:
+            self._history = []
 
     def ping(self):
         """ Fix display
         """
         self._screen.refresh()
-
 
     def run(self,init=None):
         """ Get input from command line, and return
@@ -54,13 +52,18 @@ class commandView:
         if init: text=text[len(init):]
 
         # save new commend into history
-        if text:
+        if text and init==":":
             self._history.append(text)
             open(settings["commandHistoryPath"],"a").write(text+"\n")
-        xprint(self._history)
+        log("Command history:"+str(self._history))
 
         return text
 
+    def setStatus(self,string):
+        """ Set content of view with status string
+        """
+        self._text.set(string)
+        self.ping()
 
     def update(self,screen=None):
         """ Update
