@@ -20,6 +20,9 @@ def log(*text):
     f.close()
 
 
+thispath = os.path.dirname(os.path.abspath(__file__))
+remotepath = "/home/prime/sshfs/lxp/notes"
+
 settings = {}
 
 settings["filesWidth"] = 30
@@ -37,10 +40,9 @@ settings["fgColorFilesViewHighlight"]  = utils.color_dark_cyan
 settings["dialogDialogFocus"]          = utils.color_blue
 settings["dialogDialogBackground"]     = utils.color_white
 
-
-
-settings["commandHistoryPath"] = "/home/prime/dev/notes2/history.txt"
-settings["dataPath"] = "/home/prime/dev/notes2/data"
+settings["commandHistoryPath"] = os.path.join(thispath,"history.txt")
+settings["indexPath"] = os.path.join(thispath,"storedIndex.pickle")
+settings["dataPath"] = os.path.join(remotepath,"data")
 settings["tmpPath"] = "/tmp/notetmp"
 settings["delPath"] = "/tmp/notetrash"
 
