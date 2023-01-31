@@ -202,6 +202,7 @@ class interface:
         # set file index to this file
         self._views["fv"].selectName(name)
 
+        self._cv.setStatus(f"Edited note")
         self.ping()
 
 

@@ -78,12 +78,12 @@ class noteindex:
         return f"Created new note: {name}"
 
 
-    def _loadNote(self,path):
-        """ Load note meta data """
-        log("Loading: ",path)
-        meta = json.load(open(path,"r"))
-        assert "shortname" in meta.keys(), "Missing 'key' information :)"
-        return meta
+    # def _loadNote(self,path):
+    #     """ Load note meta data """
+    #     log("Loading: ",path)
+    #     meta = json.load(open(path,"r"))
+    #     assert "shortname" in meta.keys(), "Missing 'key' information :)"
+    #     return meta
 
     def _generateIndex(self):
         """ Generate index from files in dataPath """
@@ -215,13 +215,19 @@ class noteindex:
         # update pickle
         self.pickle()
 
-    def getMeta(self,shortname):
+    def getMeta(self,shortname,reload=False):
         log("Getting path for",shortname)
         assert shortname in self.data.keys()
-        return self.data[shortname]
+        if reload:
+            path = self.getPath(shortname)
+            metaPath = os.path.join(path,"meta.json")
+            meta = json.load(open(metaPath,"r"))
+            return meta
+        else:
+            return self.data[shortname]
 
     def isBlocked(self,shortname):
-        meta = self.getMeta(shortname)
+        meta = self.getMeta(shortname,reload=True)
         return meta["blocked"] == "true"
  
     def block(self,shortname):
