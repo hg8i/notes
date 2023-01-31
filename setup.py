@@ -41,7 +41,7 @@ settings["dialogDialogFocus"]          = utils.color_blue
 settings["dialogDialogBackground"]     = utils.color_white
 
 settings["commandHistoryPath"] = os.path.join(thispath,"history.txt")
-settings["indexPath"] = os.path.join(thispath,"storedIndex.pickle")
+settings["indexPath"] = os.path.join(remotepath,"storedIndex.pickle")
 settings["dataPath"] = os.path.join(remotepath,"data")
 settings["tmpPath"] = "/tmp/notetmp"
 settings["delPath"] = "/tmp/notetrash"
