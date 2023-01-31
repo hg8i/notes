@@ -60,6 +60,7 @@ class noteindex:
         meta["shortname"] = shortname
         meta["author"] = os.environ.get("USERNAME")
         meta["dirName"] = dirname
+        meta["blocked"] = "false"
         if os.path.exists(dirpath):
             return f"Failed to create existing note directory {dirpath}"
         else:

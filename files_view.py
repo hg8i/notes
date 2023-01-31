@@ -35,7 +35,7 @@ class filesView:
         """ Ping and update file list
         """
         # TODO: Update so that it only loads a note when the index changes
-        self._fileIndex=min(self._fileIndex,len(self._index)-1)
+        # self._fileIndex=min(self._fileIndex,len(self._index)-1)
         self._display()
         self._nv.load(self._fileIndex)
 
@@ -153,14 +153,14 @@ class filesView:
         if self._fileIndex>=len(self._index):
             self._fileIndex=0
         self._protectIndexBounds()
-        self._scrollToFileIndex()
+        # self._scrollToFileIndex()
 
     def goPrev(self):
         self._fileIndex-=1
         if self._fileIndex<0:
             self._fileIndex=len(self._index)-1
         self._protectIndexBounds()
-        self._scrollToFileIndex()
+        # self._scrollToFileIndex()
 
     def _scrollToFileIndex(self):
         while self._fileIndex<self._scroll:
@@ -170,9 +170,10 @@ class filesView:
 
     def _protectIndexBounds(self):
         self._fileIndex = max(0,self._fileIndex)
-        self._fileIndex=min(self._fileIndex,len(self._index)-1)
+        if len(self._index):
+            self._fileIndex=min(self._fileIndex,len(self._index)-1)
 
-    def scrollDp(self):
+    def scrollDn(self):
         self._scroll+=10
         self._scroll = min(len(self._index),self._scroll)
         if self._fileIndex<self._scroll:
@@ -195,7 +196,7 @@ class filesView:
         elif char==ord("k"): # scroll up
             self.goPrev()
         elif char==ord("d"): # scroll down
-            self.scrollDp()
+            self.scrollDn()
         elif char==ord("u"): # scroll up
             self.scrollUp()
 

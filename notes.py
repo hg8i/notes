@@ -7,10 +7,13 @@ def main(screen):
 
     indexPath = settings["indexPath"]
 
-    try:
-        index = noteindex(loadPickle=1,picklePath=indexPath)
-    except:
+    if "-p" in sys.argv:
         index = noteindex(loadPickle=0,picklePath=indexPath)
+    else:
+        try:
+            index = noteindex(loadPickle=1,picklePath=indexPath)
+        except:
+            index = noteindex(loadPickle=0,picklePath=indexPath)
 
     for i in range(0, curses.COLORS):
         curses.init_pair(i + 1, i, -1)
