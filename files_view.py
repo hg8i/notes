@@ -153,14 +153,14 @@ class filesView:
         if self._fileIndex>=len(self._index):
             self._fileIndex=0
         self._protectIndexBounds()
-        # self._scrollToFileIndex()
+        self._scrollToFileIndex()
 
     def goPrev(self):
         self._fileIndex-=1
         if self._fileIndex<0:
             self._fileIndex=len(self._index)-1
         self._protectIndexBounds()
-        # self._scrollToFileIndex()
+        self._scrollToFileIndex()
 
     def _scrollToFileIndex(self):
         while self._fileIndex<self._scroll:

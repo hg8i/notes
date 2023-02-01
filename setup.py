@@ -22,6 +22,7 @@ def log(*text):
 
 thispath = os.path.dirname(os.path.abspath(__file__))
 remotepath = "/home/prime/sshfs/lxp/notes"
+# remotepath = thispath #debug
 
 settings = {}
 

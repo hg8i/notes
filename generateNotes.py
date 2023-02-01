@@ -7,7 +7,7 @@ import random,string
 # Script to generate a test data directory
 # ==================================================
 
-nNotes = 20
+nNotes = 100
 
 os.popen("rm -rf data/*")
 os.popen("mkdir data")
