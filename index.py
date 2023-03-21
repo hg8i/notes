@@ -19,9 +19,9 @@ class noteindex:
         self._searchKey="all"
 
         if loadPickle:
-            loaded = pickle.load(open(picklePath,"rb"))
-            self.names = loaded.names
-            self.data = loaded.data
+            pickleFile = open(picklePath,"rb")
+            self.names = pickle.load(pickleFile)
+            self.data = pickle.load(pickleFile)
         else:
             self.names["tag"] = defaultdict(list)
             self.names["created"] = defaultdict(list)
@@ -32,6 +32,7 @@ class noteindex:
         self._sortKey = "modified"
         self._sortSuccess = False
         self._generateListOfNames()
+        self.pickleSemaphore = multiprocessing.Semaphore(1)
 
     def setSearchKey(self,key):
         if key in self.names.keys() or key=="all":
@@ -242,10 +243,25 @@ class noteindex:
         meta["blocked"] = "false"
         meta["modified"] = self.now()
         self.setMeta(shortname,meta)
-        
+
+    def pickleThread(self,semaphore):
+        log("Pickle thread acquire")
+        semaphore.acquire()
+        log("Pickle thread dump")
+        pickleFile = open(self.picklePath,"wb")
+        pickle.dump(self.names,pickleFile)
+        pickle.dump(self.data,pickleFile)
+        log("Pickle thread release")
+        semaphore.release()
+        log("Pickle thread done")
+
 
     def pickle(self):
-        pickle.dump(self,open(self.picklePath,"wb"))
+        # Launch pickleThread in background
+        # Multiple writes (hopefully) staged by semaphore
+        p=multiprocessing.Process(target=self.pickleThread, args=(self.pickleSemaphore,))
+        p.start()
+        p.join()
 
     def fullName(self,shortname):
         if shortname in self.data.keys():

@@ -11,8 +11,10 @@ def main(screen):
         index = noteindex(loadPickle=0,picklePath=indexPath)
     else:
         try:
+            log("Loading index with pickle file")
             index = noteindex(loadPickle=1,picklePath=indexPath)
         except:
+            log("Loading index without pickle file")
             index = noteindex(loadPickle=0,picklePath=indexPath)
 
     for i in range(0, curses.COLORS):

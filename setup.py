@@ -7,6 +7,7 @@ from datetime import datetime
 import functools
 import glob,utils
 from subprocess import call
+import multiprocessing
 
 import glob,json,os,re
 import pickle
@@ -14,19 +15,28 @@ from collections import defaultdict
 
 os.popen("rm log.txt"); time.sleep(0.01)
 def log(*text):
+    global logon
+    if not logon: return
     f = open("log.txt","a")
     text = " ".join([str(t) for t in text])
     f.write(str(text)+"\n")
     f.close()
 
+debug = 1
 
 thispath = os.path.dirname(os.path.abspath(__file__))
-remotepath = "/home/prime/sshfs/lxp/notes"
-# remotepath = thispath #debug
+
+if debug:
+    remotepath = thispath #debug
+    logon = True
+else:
+    remotepath = "/home/prime/sshfs/lxp/notes"
+    logon = False
 
 settings = {}
 
 settings["filesWidth"] = 30
+
 
 settings["bkColorCommandView"]         = utils.color_dark_blue
 settings["fgColorCommandView"]         = utils.color_white
