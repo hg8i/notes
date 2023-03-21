@@ -32,7 +32,7 @@ class noteindex:
         self._sortKey = "modified"
         self._sortSuccess = False
         self._generateListOfNames()
-        self.pickleSemaphore = multiprocessing.Semaphore(1)
+        self.writeSemaphore = multiprocessing.Semaphore(1)
 
     def setSearchKey(self,key):
         if key in self.names.keys() or key=="all":
@@ -69,7 +69,7 @@ class noteindex:
 
         # save
         metaPath = os.path.join(dirpath,"meta.json")
-        json.dump(meta,open(metaPath,"w"),indent=4)
+        self.jsonWrite(meta,metaPath)
 
 
         # add note to index
@@ -212,9 +212,9 @@ class noteindex:
         meta["created"] = self.dateToS(meta["created"])
         meta["modified"] = self.dateToS(meta["modified"])
         metaPath = os.path.join(self.getPath(shortname),"meta.json")
-        json.dump(meta,open(metaPath,"w"),indent=4)
+        self.jsonWrite(meta,metaPath)
         # update pickle
-        self.pickle()
+        self.pickleWrite()
 
     def getMeta(self,shortname,reload=False):
         log("Getting path for",shortname)
@@ -244,24 +244,31 @@ class noteindex:
         meta["modified"] = self.now()
         self.setMeta(shortname,meta)
 
+
     def pickleThread(self,semaphore):
         log("Pickle thread acquire")
         semaphore.acquire()
-        log("Pickle thread dump")
         pickleFile = open(self.picklePath,"wb")
         pickle.dump(self.names,pickleFile)
         pickle.dump(self.data,pickleFile)
-        log("Pickle thread release")
         semaphore.release()
-        log("Pickle thread done")
 
-
-    def pickle(self):
+    def pickleWrite(self):
         # Launch pickleThread in background
         # Multiple writes (hopefully) staged by semaphore
-        p=multiprocessing.Process(target=self.pickleThread, args=(self.pickleSemaphore,))
+        p=multiprocessing.Process(target=self.pickleThread, args=(self.writeSemaphore,))
         p.start()
-        p.join()
+        # p.join()
+
+    def jsonThread(self,semaphore,meta,metaPath):
+        log("Json thread acquire")
+        semaphore.acquire()
+        json.dump(meta,open(metaPath,"w"),indent=4)
+        semaphore.release()
+
+    def jsonWrite(self,meta,metaPath):
+        p=multiprocessing.Process(target=self.jsonThread, args=(self.writeSemaphore,meta,metaPath,))
+        p.start()
 
     def fullName(self,shortname):
         if shortname in self.data.keys():
@@ -344,6 +351,6 @@ if __name__=="__main__":
     log(i.getPath(name))
 
     # example of pickling the noteindex
-    i.pickle()
+    i.pickleWrite()
 
     # iteration

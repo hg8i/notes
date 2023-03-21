@@ -234,7 +234,7 @@ class interface:
     def _savePickle(self):
         log("Saving pickle file")
         self._cv.setStatus(f"Wrote pickle {self._index.getPicklePath()}")
-        self._index.pickle()
+        self._index.writePickle()
 
 
     def _parseCommand(self,cmd):
