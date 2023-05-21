@@ -23,6 +23,7 @@ class noteindex:
             self.names = pickle.load(pickleFile)
             self.data = pickle.load(pickleFile)
         else:
+            # Dictionaries of tag:list of names
             self.names["tag"] = defaultdict(list)
             self.names["created"] = defaultdict(list)
             self.names["modified"] = defaultdict(list)
@@ -33,6 +34,7 @@ class noteindex:
         self._sortSuccess = False
         self._generateListOfNames()
         self.writeSemaphore = multiprocessing.Semaphore(1)
+        self.processes=[]
 
     def setSearchKey(self,key):
         if key in self.names.keys() or key=="all":
@@ -70,21 +72,14 @@ class noteindex:
         # save
         metaPath = os.path.join(dirpath,"meta.json")
         self.jsonWrite(meta,metaPath)
-
+        while not os.path.exists(metaPath):
+            time.sleep(0.1)
 
         # add note to index
         self.add(dirpath)
         self.setMeta(shortname,meta) # also updates pickle
 
         return f"Created new note: {name}"
-
-
-    # def _loadNote(self,path):
-    #     """ Load note meta data """
-    #     log("Loading: ",path)
-    #     meta = json.load(open(path,"r"))
-    #     assert "shortname" in meta.keys(), "Missing 'key' information :)"
-    #     return meta
 
     def _generateIndex(self):
         """ Generate index from files in dataPath """
@@ -165,6 +160,9 @@ class noteindex:
         self._currentPattern=pattern
         self._searchResults=ret
 
+        self._generateListOfNames()
+        log("Done searching:",repr(pattern))
+
         return ret
 
     def getPattern(self):
@@ -173,6 +171,7 @@ class noteindex:
     def clearSearch(self):
         self._currentPattern=None
         self._searchResults=None
+        self._generateListOfNames()
 
     def deleteNote(self,shortname):
         """ Delete a note (really mv it to /tmp) and clear index
@@ -195,13 +194,30 @@ class noteindex:
     def getPath(self,shortname):
         log("Getting path for",shortname)
         assert shortname in self.data.keys()
-        assert "dirName" in self.data[shortname]
+        assert "dirName" in self.data[shortname] # TODO ???
         dirName = self.data[shortname]["dirName"]
         path = os.path.join(self.dataPath,dirName)
         assert os.path.exists(path), f"Note {path} not existing"
         return path
 
-    def setMeta(self,shortname,meta):
+    def _updateNames(self,key,meta):
+        name = meta["shortname"]
+
+        # remove old instances
+        kkey = key.replace("tags","tag")
+        for k,v in  self.names[kkey].items():
+            if name in self.names[kkey][k]:
+                self.names[kkey][k].remove(name)
+
+        # add current instances
+        if key=="tags":
+            for tag in meta["tags"]:
+                self.names["tag"][tag].append(name)
+        else:
+            self.names[key][meta[key]].append(name)
+
+    def setMeta(self,meta):
+        shortname = meta["shortname"]
         log("Getting path for",shortname)
         # assert shortname in self.data.keys()
         # update self (dates as datetimes)
@@ -213,8 +229,13 @@ class noteindex:
         meta["modified"] = self.dateToS(meta["modified"])
         metaPath = os.path.join(self.getPath(shortname),"meta.json")
         self.jsonWrite(meta,metaPath)
+        # Update index info
+        self._updateNames("tags",meta)
+        self._updateNames("created",meta)
+        self._updateNames("modified",meta)
         # update pickle
         self.pickleWrite()
+        return "Updated "+self.getPath(shortname)
 
     def getMeta(self,shortname,reload=False):
         log("Getting path for",shortname)
@@ -256,9 +277,8 @@ class noteindex:
     def pickleWrite(self):
         # Launch pickleThread in background
         # Multiple writes (hopefully) staged by semaphore
-        p=multiprocessing.Process(target=self.pickleThread, args=(self.writeSemaphore,))
-        p.start()
-        # p.join()
+        self.processes.append(multiprocessing.Process(target=self.pickleThread, args=(self.writeSemaphore,)))
+        self.processes[-1].start()
 
     def jsonThread(self,semaphore,meta,metaPath):
         log("Json thread acquire")
@@ -267,8 +287,12 @@ class noteindex:
         semaphore.release()
 
     def jsonWrite(self,meta,metaPath):
-        p=multiprocessing.Process(target=self.jsonThread, args=(self.writeSemaphore,meta,metaPath,))
-        p.start()
+        self.processes.append(multiprocessing.Process(target=self.jsonThread, args=(self.writeSemaphore,meta,metaPath,)))
+        self.processes[-1].start()
+
+    def quit(self):
+        for process in self.processes:
+            process.join()
 
     def fullName(self,shortname):
         if shortname in self.data.keys():
@@ -276,9 +300,18 @@ class noteindex:
         else:
             return "None"
 
+    def getIndexOfName(self,name):
+        if name in self._listOfNames:
+            return self._listOfNames.index(name)
+        else:
+            return None
+
     def __getitem__(self,i):
         # log("Getting item",i,"of",self._listOfNames)
-        return self._listOfNames[i]
+        try:
+            return self._listOfNames[i]
+        except:
+            return None
 
     def __iter__(self):
         self.pos = 0
@@ -310,7 +343,7 @@ class noteindex:
         if self._sortSuccess:
             return self._sortKey
         else:
-            return "none"
+            return "None"
 
     def getIndexOf(self,name):
         if name in self._listOfNames:

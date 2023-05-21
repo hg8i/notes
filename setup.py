@@ -1,18 +1,15 @@
-import math, sys, time, copy
+import multiprocessing
 import curses
 from curses import wrapper
-import curses, sys, os, time, string
-# from datetime import date
+import time,os,sys,glob,json
 from datetime import datetime
-import functools
-import glob,utils
-from subprocess import call
-import multiprocessing
-
-import glob,json,os,re
-import pickle
 from collections import defaultdict
+import re
+import pickle
 
+from subprocess import call
+
+logon = True
 os.popen("rm log.txt"); time.sleep(0.01)
 def log(*text):
     global logon
@@ -33,29 +30,69 @@ else:
     remotepath = "/home/prime/sshfs/lxp/notes"
     logon = False
 
+
 settings = {}
 
-settings["filesWidth"] = 30
+color_green=40
+color_red=197
+color_white=231
+color_purple=201
+color_yellow=220
+color_black=0
 
+color_cyan=123
+color_dark_cyan=39
 
-settings["bkColorCommandView"]         = utils.color_dark_blue
-settings["fgColorCommandView"]         = utils.color_white
-settings["bkColorNotesView"]           = utils.color_dark_blue
-settings["fgColorNotesView"]           = utils.color_white
-settings["bkColorFilesView"]           = utils.color_dark_cyan
-settings["fgColorFilesView"]           = utils.color_white
-settings["bkColorFilesViewHighlight"]  = utils.color_white
-settings["fgColorFilesViewHighlight"]  = utils.color_dark_cyan
+color_blue=45
+color_dark_blue=25
+
+color_dark_green=28
+color_dark_red=88
+color_dark_yellow=178
+
+color_dark_grey= 235
+color_mid_grey= 244
+color_light_grey= 252
+
+settings["deleteChar"]         = 263
+settings["ctrlUChar"]         = 21
+settings["enterChar"]         = 10
+settings["escapeChar"]         = 27
+
+settings["overflowSymbol"] = ">"
+
+settings["bkColorCommandView"]         = color_dark_blue
+settings["fgColorCommandView"]         = color_white
+settings["bkColorNotesView"]           = color_dark_blue
+settings["fgColorNotesView"]           = color_white
+settings["bkColorFilesView"]           = color_dark_cyan
+settings["fgColorFilesView"]           = color_white
+settings["bkColorFilesViewHighlight"]  = color_white
+settings["fgColorFilesViewHighlight"]  = color_dark_cyan
 
 # dialog box
-settings["dialogDialogFocus"]          = utils.color_blue
-settings["dialogDialogBackground"]     = utils.color_white
+settings["fgColorDialog"]          = color_light_grey
+settings["bkColorDialog"]          = color_dark_grey
+settings["bkColorDialogHighlight"] = color_dark_grey
+settings["fgColorDialogHighlight"] = color_dark_cyan
 
+settings["filesWidth"] = 30
 settings["commandHistoryPath"] = os.path.join(thispath,"history.txt")
 settings["indexPath"] = os.path.join(remotepath,"storedIndex.pickle")
 settings["dataPath"] = os.path.join(remotepath,"data")
 settings["tmpPath"] = "/tmp/notetmp"
 settings["delPath"] = "/tmp/notetrash"
+
+hotkeyMap = defaultdict(lambda:None)
+hotkeyMap["/"] = "search"
+hotkeyMap["\t"] = "cfocus"
+hotkeyMap["c"] = "change"
+hotkeyMap["e"] = "edit"
+hotkeyMap["q"] = "quit"
+hotkeyMap["h"] = "help"
+hotkeyMap["n"] = "new"
+hotkeyMap[":"] = "command"
+settings["hotkeyMap"] = hotkeyMap
 
 shortcutMap = defaultdict(lambda:None)
 shortcutMap["p"] = "pickle"
@@ -68,16 +105,6 @@ shortcutMap["s"] = "sort"
 shortcutMap["q"] = "quit"
 shortcutMap["h"] = "help"
 settings["shortcutMap"] = shortcutMap
-
-hotkeyMap = defaultdict(lambda:None)
-hotkeyMap["/"] = "search"
-hotkeyMap["\t"] = "cfocus"
-hotkeyMap["c"] = "change"
-hotkeyMap["e"] = "edit"
-hotkeyMap["q"] = "quit"
-hotkeyMap["h"] = "help"
-hotkeyMap[":"] = "command"
-settings["hotkeyMap"] = hotkeyMap
 
 helpMessage = defaultdict(lambda:None)
 helpMessage["key"]    = "[arg] set search key (tag,name,modified,all)"
@@ -93,3 +120,26 @@ helpMessage["search"] = "      search notes with regex"
 helpMessage["command"]= "      run a command in the prompt"
 helpMessage["cfocus"] = "      change window focus (tab)"
 settings["helpMessage"] = helpMessage
+
+def dd(d):
+    if type(d) in [str,int,float,dict,list]:
+        return d
+    for k,v in d.items():
+        d[k] = dd(v)
+    return dict(d)
+
+def updateBuffer(buffer,char,pos=0):
+    if char==settings["deleteChar"]:
+        buffer=buffer[:-1]
+        pos-=1
+    elif char==settings["ctrlUChar"]:
+        buffer=""
+        pos = 0
+    else:
+        buffer+=chr(char)
+        pos+=1
+    pos = max(pos,0)
+    pos = min(pos,len(buffer))
+    return buffer,pos
+
+
