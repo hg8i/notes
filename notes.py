@@ -15,14 +15,12 @@ def main(screen):
     if "-p" in sys.argv:
         index = noteindex(loadPickle=0,picklePath=indexPath)
     else:
-        if 1:
-        # try:
+        try:
             log("Loading index with pickle file")
             index = noteindex(loadPickle=1,picklePath=indexPath)
-
-        # except:
-        #     log("Loading index without pickle file")
-        #     index = noteindex(loadPickle=0,picklePath=indexPath)
+        except:
+            log("Loading index without pickle file")
+            index = noteindex(loadPickle=0,picklePath=indexPath)
 
     m = model.model(screen,index)
     m.run()
