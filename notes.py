@@ -10,6 +10,11 @@ def main(screen):
     for i in range(0, curses.COLORS):
         curses.init_pair(i + 1, i, -1)
 
+    if not os.path.exists(settings["tmpPath"]):
+        os.mkdirs(settings["tmpPath"])
+    if not os.path.exists(settings["delPath"]):
+        os.mkdirs(settings["delPath"])
+
 
     indexPath = settings["indexPath"]
     if "-p" in sys.argv:
