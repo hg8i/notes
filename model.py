@@ -484,6 +484,9 @@ class model:
             elif chr(char) in "0123456789":
                 buffer+=chr(char)
                 self._notify(buffer)
+            else:
+                self._notify("No jump")
+                return
         self._notify("")
 
     def processInputNotesView(self,char):
