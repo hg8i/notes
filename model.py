@@ -207,15 +207,20 @@ class model:
     # ================ CLI functions ===================
 
     def _newNote(self,cmds=None):
-        fields = []
-        fields.append({"name":"name","content":"","cursorPos":0,"showCursor":False})
-        fields.append({"name":"tags","content":"","cursorPos":0,"showCursor":False})
-        fields = self._runDialog(fields,inputs=True,name="New Note")
-        # parse response
-        name = [f["content"] for f in fields if f["name"]=="name"][0]
-        tags = [f["content"] for f in fields if f["name"]=="tags"][0].split(",")
-        shortname = name.replace(" ","_")
-        # make new note with index
+        if cmds!=None:
+            name = " ".join(cmds[1:])
+            shortname = "_".join(cmds[1:])
+            tags = []
+        else:
+            fields = []
+            fields.append({"name":"name","content":"","cursorPos":0,"showCursor":False})
+            fields.append({"name":"tags","content":"","cursorPos":0,"showCursor":False})
+            fields = self._runDialog(fields,inputs=True,name="New Note")
+            # parse response
+            name = [f["content"] for f in fields if f["name"]=="name"][0]
+            tags = [f["content"] for f in fields if f["name"]=="tags"][0].split(",")
+            shortname = name.replace(" ","_")
+            # make new note with index
         status = self._index.createNote(name=name,shortname=shortname,tags=tags)
 
         self._notify(status)

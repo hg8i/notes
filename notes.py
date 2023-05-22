@@ -14,6 +14,7 @@ def main(screen):
     indexPath = settings["indexPath"]
     if "-p" in sys.argv:
         index = noteindex(loadPickle=0,picklePath=indexPath)
+        index.pickleWrite()
     else:
         try:
             log("Loading index with pickle file")

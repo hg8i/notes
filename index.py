@@ -75,9 +75,16 @@ class noteindex:
         while not os.path.exists(metaPath):
             time.sleep(0.1)
 
+        notePath = os.path.join(dirpath,"note.md")
+        log("Creating note "+notePath)
+        f = open(notePath,"w")
+        f.write("Note")
+        f.close()
+        log("Creating note done "+notePath)
+
         # add note to index
         self.add(dirpath)
-        self.setMeta(shortname,meta) # also updates pickle
+        self.setMeta(meta) # also updates pickle
 
         return f"Created new note: {name}"
 
@@ -256,14 +263,14 @@ class noteindex:
         log("Blocking",shortname)
         meta = self.getMeta(shortname)
         meta["blocked"] = "true"
-        self.setMeta(shortname,meta)
+        self.setMeta(meta)
 
     def unblock(self,shortname):
         log("Unblocking",shortname)
         meta = self.getMeta(shortname)
         meta["blocked"] = "false"
         meta["modified"] = self.now()
-        self.setMeta(shortname,meta)
+        self.setMeta(meta)
 
 
     def pickleThread(self,semaphore):

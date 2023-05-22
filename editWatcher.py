@@ -22,6 +22,8 @@ class editwatcher:
         # self._outputq.put({"message":"Started Edit Watcher"})
 
     def getNoteModTime(self):
+        if not os.path.exists(self._tmpNotePath):
+            return 0
         ret= os.path.getmtime(self._tmpNotePath)
         return ret
 
