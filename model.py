@@ -207,7 +207,7 @@ class model:
     # ================ CLI functions ===================
 
     def _newNote(self,cmds=None):
-        if cmds!=None:
+        if len(cmds)>1:
             name = " ".join(cmds[1:])
             shortname = "_".join(cmds[1:])
             tags = []
