@@ -69,6 +69,9 @@ class model:
         self._updateFileView()
         self._updateNotesView()
 
+        # Hopefully helps with garbage printed on start
+        self._view_i.put({"type":"forceUpdate"})
+
     def _updateCommand(self):
         # Updates command view with the current command being entered
         data = {}
@@ -338,11 +341,13 @@ class model:
 
     def _threadScreenPause(self):
         # Stop the printing threads from printing
+        curses.endwin()
         self._controller_e.clear()
         self._view_e.clear()
 
     def _threadScreenStart(self):
         # Resume the printing threads printing
+        curses.doupdate()
         self._controller_e.set()
         self._view_e.set()
 

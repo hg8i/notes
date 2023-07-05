@@ -39,6 +39,7 @@ class view:
 
         # Make screens
         self.rescaleCheck()
+        # self.rescaleCheck(force=True)
 
 
 
