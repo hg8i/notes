@@ -367,6 +367,10 @@ class model:
         noteDir  = os.path.join(settings["dataPath"],meta["dirName"])
         notePath = os.path.join(noteDir,"note.md")
 
+        # update modified time
+        status = self._index.modifyNoteTime(name)
+        self._notify(status)
+
         tmpDir = os.path.join(settings["tmpPath"],meta["dirName"]+"_"+str(time.time()))
         tmpNotePath = os.path.join(tmpDir,"note.md")
 

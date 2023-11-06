@@ -46,6 +46,15 @@ class noteindex:
     def now(self):
         return datetime.now().strftime("%d/%m/%y %H:%M::%S")
 
+    def modifyNoteTime(self,shortname,reload=False):
+        """ Update the "modified" timestamp to "now"
+        """
+        meta = self.getMeta(shortname)
+        now = self.now()
+        meta["modified"] = now
+        self.setMeta(meta) # also updates pickle
+        return f"Updated note modification time to {now}"
+
     def createNote(self,name=None,shortname=None,tags=[]):
         """ Create a new note, add to index, make directories
             Returns status
