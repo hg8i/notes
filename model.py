@@ -350,18 +350,21 @@ class model:
         while self._view_o.get()["type"]!="confirm_pause":
             time.sleep(0.05)
 
-    def _threadScreenStart(self):
+    def _threadScreenStart(self,name):
         # Resume the printing threads printing
         curses.doupdate()
         self._view_i.put({"type":"resume"})
         self._controller_e.set()
         self._view_e.set()
+        self._filePos = self._index.getIndexOfName(name,resort=False)
         # empty character queue before returning to interface
         while not self._char_queue.empty():
             self._char_queue.get()
         # wait until confirmation from view
         while self._view_o.get()["type"]!="confirm_resume":
             time.sleep(0.05)
+        self._updateFileView()
+        self._updateNotesView()
         self._view_i.put({"type":"forceUpdate"})
 
     def _changeNote(self):
@@ -370,9 +373,6 @@ class model:
         noteDir  = os.path.join(settings["dataPath"],meta["dirName"])
         notePath = os.path.join(noteDir,"note.md")
 
-        # update modified time
-        status = self._index.modifyNoteTime(name)
-        self._notify(status)
 
         tmpDir = os.path.join(settings["tmpPath"],meta["dirName"]+"_"+str(time.time()))
         tmpNotePath = os.path.join(tmpDir,"note.md")
@@ -382,7 +382,7 @@ class model:
         cmd = f"cp -r {noteDir} {tmpDir}"
         os.popen(cmd)
         while not os.path.exists(tmpDir):
-            time.sleep(0.1)
+            time.sleep(0.01)
 
         # Launch file watcher
         inputq = self._manager.Queue()
@@ -396,8 +396,12 @@ class model:
         self._threadScreenPause() # pause gui
         EDITOR = os.environ.get("EDITOR","vim")
         call([EDITOR, tmpNotePath])
-        self._threadScreenStart() # resume gui
 
+        # update modified time
+        status = self._index.modifyNoteTime(name)
+        self._notify(status)
+
+        self._threadScreenStart(name) # resume gui
 
         # close filewatcher
         inputq.put({"type":"close"})
@@ -411,6 +415,14 @@ class model:
         # time.sleep(0.5)
         log("Edit watcher result:",str(ewMessage))
         self._notify(ewMessage)
+
+        # # Update after changing order of files
+        # # self._notify(f"Names: {[ n for n in self._index ]} name={name} pos={self._filePos}")
+        # # self._filePos = self._index.getIndexOfName(name,resort=False)
+        # self._notify(f"File pos: {self._filePos}")
+        # self._notify(f"Names: {[ n for n in self._index ]} name={name} pos={self._filePos}")
+        # self._updateFileView()
+        # self._updateNotesView()
 
     def _changeFocus(self):
         self._iFocus+=1

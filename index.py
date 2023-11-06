@@ -53,6 +53,9 @@ class noteindex:
         now = self.now()
         meta["modified"] = now
         self.setMeta(meta) # also updates pickle
+        # update sorting (in case by modified)
+        if self.getSort() == "modified":
+            self._generateListOfNames()
         return f"Updated note modification time to {now}"
 
     def createNote(self,name=None,shortname=None,tags=[]):
@@ -316,7 +319,8 @@ class noteindex:
         else:
             return "None"
 
-    def getIndexOfName(self,name):
+    def getIndexOfName(self,name,resort=False):
+        if resort: self._generateListOfNames()
         if name in self._listOfNames:
             return self._listOfNames.index(name)
         else:
