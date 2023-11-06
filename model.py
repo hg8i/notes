@@ -356,10 +356,13 @@ class model:
         self._view_i.put({"type":"resume"})
         self._controller_e.set()
         self._view_e.set()
-
+        # empty character queue before returning to interface
+        while not self._char_queue.empty():
+            self._char_queue.get()
         # wait until confirmation from view
         while self._view_o.get()["type"]!="confirm_resume":
             time.sleep(0.05)
+        self._view_i.put({"type":"forceUpdate"})
 
     def _changeNote(self):
         name = self._index[self._filePos]
@@ -405,8 +408,7 @@ class model:
         while outputq.qsize():
             ewMessage = outputq.get()["message"]
 
-        time.sleep(0.5)
-        self._view_i.put({"type":"forceUpdate"})
+        # time.sleep(0.5)
         log("Edit watcher result:",str(ewMessage))
         self._notify(ewMessage)
 

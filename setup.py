@@ -19,7 +19,7 @@ def log(*text):
     f.write(str(text)+"\n")
     f.close()
 
-debug = 0
+debug = 1
 
 thispath = os.path.dirname(os.path.abspath(__file__))
 
