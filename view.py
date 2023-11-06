@@ -2,9 +2,10 @@ from setup import *
 import drawing
 
 class view:
-    def __init__(self,screen,inputq=None,event=None):
+    def __init__(self,screen,inputq=None,outputq=None,event=None):
         self._screen = screen
         self._input = inputq
+        self._output = outputq
         self._lastScreenY,self._lastScreenX = None,None
         self._event = event
 
@@ -297,6 +298,13 @@ class view:
             if overflow:
                 self._text(self._notesScreen,pos,screenX-2,settings["overflowSymbol"],color=self._notesColor)
 
+    def pause(self):
+        """ Pause view output """
+        self._output.put({"type":"confirm_pause"})
+        while self._input.get()["type"]!="resume":
+            time.sleep(0.05)
+        self._output.put({"type":"confirm_resume"})
+
     def run(self):
 
         while True:
@@ -305,6 +313,9 @@ class view:
 
             if update["type"]=="quit":
                 return
+
+            if update["type"]=="pause": # pause writing until resume
+                self.pause()
 
             if update["type"]=="forceUpdate":
                 self.rescaleCheck(force=True)

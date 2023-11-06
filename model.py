@@ -14,6 +14,7 @@ class model:
         self._manager = multiprocessing.Manager()
         self._controller_i = self._manager.Queue()
         self._view_i = self._manager.Queue()
+        self._view_o = self._manager.Queue()
         self._note_i = self._manager.Queue()
         self._note_o = self._manager.Queue()
         self._file_i = self._manager.Queue()
@@ -34,7 +35,7 @@ class model:
 
         # objects
         self._controller = controller.controller(self._screen,inputq=self._controller_i,outputq=self._char_queue,event=self._controller_e)
-        self._view = view.view(self._screen,inputq=self._view_i,event=self._view_e)
+        self._view = view.view(self._screen,inputq=self._view_i,outputq=self._view_o,event=self._view_e)
 
         self.noteloaderThreads = []
 
@@ -342,14 +343,23 @@ class model:
     def _threadScreenPause(self):
         # Stop the printing threads from printing
         curses.endwin()
+        self._view_i.put({"type":"pause"})
         self._controller_e.clear()
         self._view_e.clear()
+        # wait until confirmation from view
+        while self._view_o.get()["type"]!="confirm_pause":
+            time.sleep(0.05)
 
     def _threadScreenStart(self):
         # Resume the printing threads printing
         curses.doupdate()
+        self._view_i.put({"type":"resume"})
         self._controller_e.set()
         self._view_e.set()
+
+        # wait until confirmation from view
+        while self._view_o.get()["type"]!="confirm_resume":
+            time.sleep(0.05)
 
     def _changeNote(self):
         name = self._index[self._filePos]
@@ -360,13 +370,12 @@ class model:
         tmpDir = os.path.join(settings["tmpPath"],meta["dirName"]+"_"+str(time.time()))
         tmpNotePath = os.path.join(tmpDir,"note.md")
 
+
         # copy files to temporary directory
         cmd = f"cp -r {noteDir} {tmpDir}"
         os.popen(cmd)
         while not os.path.exists(tmpDir):
             time.sleep(0.1)
-
-        self._threadScreenPause() # pause gui
 
         # Launch file watcher
         inputq = self._manager.Queue()
@@ -377,8 +386,11 @@ class model:
 
         # Launch vim
         # curses.endwin()
+        self._threadScreenPause() # pause gui
         EDITOR = os.environ.get("EDITOR","vim")
         call([EDITOR, tmpNotePath])
+        self._threadScreenStart() # resume gui
+
 
         # close filewatcher
         inputq.put({"type":"close"})
@@ -389,7 +401,6 @@ class model:
         while outputq.qsize():
             ewMessage = outputq.get()["message"]
 
-        self._threadScreenStart() # resume gui
         time.sleep(0.5)
         self._view_i.put({"type":"forceUpdate"})
         log("Edit watcher result:",str(ewMessage))
