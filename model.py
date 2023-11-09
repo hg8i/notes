@@ -13,6 +13,7 @@ class model:
         # thread communication
         self._manager = multiprocessing.Manager()
         self._controller_i = self._manager.Queue()
+        self._controller_o = self._manager.Queue()
         self._view_i = self._manager.Queue()
         self._view_o = self._manager.Queue()
         self._note_i = self._manager.Queue()
@@ -20,6 +21,21 @@ class model:
         self._file_i = self._manager.Queue()
         self._file_o = self._manager.Queue()
         self._char_queue = self._manager.Queue() # input from controller
+        curses.curs_set(0)
+
+        self.queues_i = {
+            "controller":self._controller_i,
+            "view":self._view_i,
+            "note":self._note_i,
+            "file":self._file_i,
+        }
+
+        self.queues_o = {
+            "controller":self._controller_o,
+            "view":self._view_o,
+            "note":self._note_o,
+            "file":self._file_o,
+        }
 
         # Events (for pausing threads)
         self._controller_e = multiprocessing.Event()
@@ -34,7 +50,7 @@ class model:
         self._file_e.set()
 
         # objects
-        self._controller = controller.controller(self._screen,inputq=self._controller_i,outputq=self._char_queue,event=self._controller_e)
+        self._controller = controller.controller(self._screen,inputq=self._controller_i,outputq=self._controller_o,charq=self._char_queue,event=self._controller_e)
         self._view = view.view(self._screen,inputq=self._view_i,outputq=self._view_o,event=self._view_e)
 
         self.noteloaderThreads = []
@@ -195,7 +211,7 @@ class model:
         if len(cmd)==0: return
         first = cmds[0]
         log("-"*50)
-        log("Processing command",cmds)
+        log("MODEL: Processing command",cmds)
         log("-"*50)
     
         shortcutMap = self._shortcutMap
@@ -340,38 +356,65 @@ class model:
         #     # open(settings["commandHistoryPath"],"a").write(text+"\n") # TODO run in thread
         # log("Command history:"+str(self._history))
 
-    def _threadScreenPause(self):
-        # Stop the printing threads from printing
-        curses.endwin()
-        self._view_i.put({"type":"pause"})
-        self._controller_e.clear()
-        self._view_e.clear()
-        # wait until confirmation from view
-        while self._view_o.get()["type"]!="confirm_pause":
+    # def _threadScreenPause(self):
+    #     log("MODEL: threadScreenPause")
+    #     # log("MODEL: pausing screen")
+    #     # Stop the printing threads from printing
+    #     # empty character queue 
+    #     # while not self._char_queue.empty(): self._char_queue.get()
+    #     # curses.curs_set(0)
+    #     # self.sendPause("controller")
+    #     # log("MODEL: paused controller")
+    #     # self._controller_e.clear()
+    #     # self._view_e.clear()
+    #     log("MODEL: pausing view")
+    #     self.sendPause("view")
+    #     log("MODEL: paused view")
+    #     curses.endwin() # comes after pausing so "x" still sent
+
+    # def _threadScreenStart(self,name):
+    #     # Resume the printing threads printing
+    #     log("MODEL: threadScreenStart")
+    #     curses.doupdate()
+    #     # self._view_i.put({"type":"resume"})
+    #     # self._controller_e.set()
+    #     log("MODEL: update index")
+    #     # self._view_e.set()
+    #     self._filePos = self._index.getIndexOfName(name,resort=False)
+    #     # empty character queue before returning to interface
+    #     while not self._char_queue.empty():
+    #         self._char_queue.get()
+    #     log("MODEL: resume view")
+    #     self.sendResume("view")
+    #     self._updateFileView()
+    #     self._updateNotesView()
+    #     self._view_i.put({"type":"forceUpdate"})
+    #     log("MODEL: threadScreenStart done")
+
+
+    def sendPause(self,queue):
+        log(f"MODEL: pausing {queue}")
+        i = self.queues_i[queue]
+        o = self.queues_o[queue]
+        i.put({"type":"pause"})
+        while o.get()["type"]!="confirm_pause":
+            self._screen.addch(ord('x')) # to un-stick controller getch()
             time.sleep(0.05)
 
-    def _threadScreenStart(self,name):
-        # Resume the printing threads printing
-        curses.doupdate()
-        self._view_i.put({"type":"resume"})
-        self._controller_e.set()
-        self._view_e.set()
-        self._filePos = self._index.getIndexOfName(name,resort=False)
-        # empty character queue before returning to interface
-        while not self._char_queue.empty():
-            self._char_queue.get()
-        # wait until confirmation from view
-        while self._view_o.get()["type"]!="confirm_resume":
+    def sendResume(self,queue):
+        log(f"MODEL: resuming {queue}")
+        i = self.queues_i[queue]
+        o = self.queues_o[queue]
+        i.put({"type":"resume"})
+        while o.get()["type"]!="confirm_resume":
             time.sleep(0.05)
-        self._updateFileView()
-        self._updateNotesView()
-        self._view_i.put({"type":"forceUpdate"})
 
     def _changeNote(self):
         name = self._index[self._filePos]
         meta = self._index.getMeta(name)
         noteDir  = os.path.join(settings["dataPath"],meta["dirName"])
         notePath = os.path.join(noteDir,"note.md")
+        log(f"MODEL: cange note {name}")
 
 
         tmpDir = os.path.join(settings["tmpPath"],meta["dirName"]+"_"+str(time.time()))
@@ -391,17 +434,32 @@ class model:
         ewThread = multiprocessing.Process(target=ew.run)
         ewThread.start()
 
-        # Launch vim
-        # curses.endwin()
-        self._threadScreenPause() # pause gui
+        # ===============================================
+        self.sendPause("view")
+        self.stopController()
+        # self._threadScreenPause() # pause gui
+
+        curses.endwin()
+
+        # EDITOR="/home/prime/dev/notes/debug/echo.py"
         EDITOR = os.environ.get("EDITOR","vim")
-        call([EDITOR, tmpNotePath])
+        curses.curs_set(1)
+        code = call([EDITOR, tmpNotePath])
+        curses.curs_set(0)
 
-        # update modified time
-        status = self._index.modifyNoteTime(name)
-        self._notify(status)
+        curses.doupdate()
 
-        self._threadScreenStart(name) # resume gui
+        self.startController()
+
+        self._filePos = self._index.getIndexOfName(name,resort=False)
+        while not self._char_queue.empty():
+            log("MODEL: non-empty queue!")
+            self._char_queue.get()
+        log("MODEL: resume view")
+        self.sendResume("view")
+        log("MODEL: threadScreenStart done")
+
+        # ===============================================
 
         # close filewatcher
         inputq.put({"type":"close"})
@@ -412,17 +470,10 @@ class model:
         while outputq.qsize():
             ewMessage = outputq.get()["message"]
 
-        # time.sleep(0.5)
         log("Edit watcher result:",str(ewMessage))
         self._notify(ewMessage)
 
-        # # Update after changing order of files
-        # # self._notify(f"Names: {[ n for n in self._index ]} name={name} pos={self._filePos}")
-        # # self._filePos = self._index.getIndexOfName(name,resort=False)
-        # self._notify(f"File pos: {self._filePos}")
-        # self._notify(f"Names: {[ n for n in self._index ]} name={name} pos={self._filePos}")
-        # self._updateFileView()
-        # self._updateNotesView()
+        log(f"MODEL: cange note {name} done")
 
     def _changeFocus(self):
         self._iFocus+=1
@@ -541,15 +592,29 @@ class model:
         # Don't just update full view, just update the scroll!
         self._updateNotesView()
 
-    def run(self):
-
-        # launch threads
-        log("Starting controller")
+    def startController(self):
+        log("MODEL: Starting controller")
         self.controllerThread = multiprocessing.Process(target=self._controller.run)
         self.controllerThread.start()
 
+    def stopController(self):
+        log("MODEL: Stopping controller")
+        self.controllerThread.terminate()
+
+    def startView(self):
+        log("MODEL: Starting view")
         self.viewThread = multiprocessing.Process(target=self._view.run)
         self.viewThread.start()
+
+    def stopView(self):
+        log("MODEL: Stopping view")
+        self.viewThread.terminate()
+
+    def run(self):
+
+        # launch threads
+        self.startController()
+        self.startView()
 
         while True:
             # time.sleep(0.1) # fix this, bad for performance
@@ -560,7 +625,7 @@ class model:
             # while self._char_queue.qsize():
 
             char = self._char_queue.get()
-            log("Processing char",str(char))
+            log(f"Processing char: {chr(char)}")
 
             if chr(char) in self._hotkeyMap.keys():
                 command = self._hotkeyMap[chr(char)]

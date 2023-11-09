@@ -7,7 +7,7 @@ class view:
         self._input = inputq
         self._output = outputq
         self._lastScreenY,self._lastScreenX = None,None
-        self._event = event
+        # self._event = event
 
         self._commandColor = 1
         curses.init_pair(self._commandColor, settings["fgColorCommandView"],settings["bkColorCommandView"])
@@ -45,6 +45,7 @@ class view:
 
 
     def _makeScreens(self):
+        log("VIEW: making screens")
         self._screen.clear()
         screenY,screenX = self._screen.getmaxyx()
         # subwin(nlines, ncols, begin_y, begin_x)
@@ -83,7 +84,7 @@ class view:
     def updateDialogScreen(self):
         """ Update command view
         """
-
+        log("VIEW: updateDialogScreen")
         update = self._dialogState
         if update==None: return
         log("Updating dialog screen",update)
@@ -175,6 +176,7 @@ class view:
     def updateNotesScreen(self):
         """ Update command view
         """
+        log("VIEW: updateNotesScreen")
         self._notesScreen.erase()
         screenY,screenX = self._notesScreen.getmaxyx()
         drawing._drawBox(self._notesScreen,0,0,screenY,screenX," ",self._notesColor)
@@ -186,6 +188,7 @@ class view:
     def updateCommandScreen(self):
         """ Update command view
         """
+        log("VIEW: updateCommandScreen")
         self._commandScreen.erase()
         screenY,screenX = self._commandScreen.getmaxyx()
         drawing._drawBox(self._commandScreen,0,0,screenY,screenX," ",self._commandColor)
@@ -195,6 +198,7 @@ class view:
     def updateFilesScreen(self):
         """ Update command view
         """
+        log("VIEW: updateFilesScreen")
         self._filesScreen.erase()
         screenY,screenX = self._filesScreen.getmaxyx()
         drawing._drawBox(self._filesScreen,0,0,screenY,screenX," ",self._filesColor)
@@ -205,6 +209,8 @@ class view:
 
     def rescaleCheck(self,force=False):
         """ Rescale """
+        log(f"VIEW: ---------------------------------------")
+        log(f"VIEW: rescale (forced={force})")
         screenY,screenX = self._screen.getmaxyx()
         if self._lastScreenY!=screenY or self._lastScreenX!=screenX or force:
             self._makeScreens()
@@ -232,6 +238,7 @@ class view:
             pass
 
     def updateFilesData(self):
+        log("VIEW: updateFilesData")
         update = self._filesState
         screenY,screenX = self._filesScreen.getmaxyx()
         if update==None: return
@@ -300,15 +307,19 @@ class view:
 
     def pause(self):
         """ Pause view output """
+        log("VIEW: pausing")
         self._output.put({"type":"confirm_pause"})
+        log("VIEW: pause confirmed")
         while self._input.get()["type"]!="resume":
+            log("VIEW: pause waiting")
             time.sleep(0.05)
+        log("VIEW: resume")
         self._output.put({"type":"confirm_resume"})
 
     def run(self):
 
         while True:
-            self._event.wait()
+            log("VIEW: run loop")
             update = self._input.get()
 
             if update["type"]=="quit":
@@ -316,6 +327,8 @@ class view:
 
             if update["type"]=="pause": # pause writing until resume
                 self.pause()
+                time.sleep(0.05) # not sure why needed, otherwise doesn't work
+                self.rescaleCheck(force=True)
 
             if update["type"]=="forceUpdate":
                 self.rescaleCheck(force=True)

@@ -13,7 +13,7 @@ logon = True
 os.popen("rm log.txt"); time.sleep(0.01)
 def log(*text):
     global logon
-    if not logon: return
+    # if not logon: return
     f = open("log.txt","a")
     text = " ".join([str(t) for t in text])
     f.write(str(text)+"\n")
