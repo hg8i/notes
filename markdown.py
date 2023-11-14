@@ -12,8 +12,7 @@ class markdown:
         self.htmlNote = "" # note text
         # self.pageFoot = [] # footer
         self._notePath   = os.path.join(settings["dataPath"],name)
-        self._htmlPath   = os.path.join(settings["tmpPath"],f"html-{name}")
-        # self._htmlPath   = os.path.join(settings["tmpPath"],f"html-{name}-{time.time()}")
+        self._htmlPath   = os.path.join(settings["tmpPath"],f"{name}")
         self._htmlImages = os.path.join(self._htmlPath,"images")
 
         # Make required/assumed directories
@@ -23,8 +22,8 @@ class markdown:
         while not os.path.exists(self._htmlPath): time.sleep(0.01)
 
     def run(self):
-        print(f"Generating note from {self._notePath}")
-        print(f"Saving page to {self._htmlPath}")
+        log(f"Generating note from {self._notePath}")
+        log(f"Saving page to {self._htmlPath}")
 
         self.parseJson()
         self.parseMarkdown()
@@ -78,7 +77,7 @@ class markdown:
             else:
                 # relative path to self._notePath
                 cmd = f"cp {os.path.join(self._notePath,path)} {imageMovements[path]}"
-            print(f"COPY: {cmd}")
+            log(f"COPY: {cmd}")
             os.popen(cmd)
 
         # Replace paths
@@ -92,7 +91,7 @@ class markdown:
         blockPattern = re.compile(r'```\n*([\s\S]*?)\n*```')
         blockHtml = r'<pre id="pre-paragraph">\n\1\n</pre>'
         note = re.sub(blockPattern,self.blockReplacement,note)
-        print(f"Identified {len(self.blockMapper.keys())} block quotes")
+        log(f"Identified {len(self.blockMapper.keys())} block quotes")
 
         note = note.split("\n")
         note = [l.rstrip() for l in note]
@@ -111,20 +110,20 @@ class markdown:
             'preform':  {'e':re.compile(r'^>(.*)'),'r':r'<pre id="pre-inline">\1</pre>'},
         }
         for iLine,line in enumerate(note):
-            # print("-"*50)
-            # print(line)
+            # log("-"*50)
+            # log(line)
             for name,expr in expressions.items():
                 # Check if line matches
                 if expr["e"].search(line):
                     line = re.sub(expr["e"], expr["r"], line)
                     note[iLine] = line
-                    # print(name,line)
+                    # log(name,line)
                     # break
 
         note = "\n".join(note)
 
         for blockHolder,blockText in self.blockMapper.items():
-            # print(blockHolder,blockText.group(1))
+            # log(blockHolder,blockText.group(1))
             blockHtml = f'<pre id="pre-paragraph">\n{blockText.group(1)}\n</pre>'
             note = re.sub(blockHolder,blockHtml,note)
 
@@ -154,9 +153,9 @@ class markdown:
         oFile.flush()
 
         # Synchronize to EOS
-        cmd = htmlsync.format(self._htmlPath,settings["htmlPath"])
-        print(f"Synced to: https://aawhite.web.cern.ch/notes/pages")
-        print(cmd)
+        cmd = settings["htmlsync"].format(self._htmlPath,settings["htmlPath"])
+        log(f"Synced to: https://aawhite.web.cern.ch/notes/pages")
+        log(cmd)
         os.popen(cmd).read()
 
 

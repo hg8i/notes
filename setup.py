@@ -95,9 +95,11 @@ hotkeyMap["q"] = "quit"
 hotkeyMap["h"] = "help"
 hotkeyMap["n"] = "new"
 hotkeyMap[":"] = "command"
+hotkeyMap["w"] = "web"
 settings["hotkeyMap"] = hotkeyMap
 
 shortcutMap = defaultdict(lambda:None)
+shortcutMap["w"] = "web"
 shortcutMap["p"] = "pickle"
 shortcutMap["k"] = "key"
 shortcutMap["n"] = "new"
@@ -113,6 +115,7 @@ helpMessage = defaultdict(lambda:None)
 helpMessage["key"]    = "[arg] set search key (tag,name,modified,all)"
 helpMessage["sort"]   = "[arg] sort note list (name,modified,created,tag)"
 helpMessage["pickle"] = "      write index pickle file"
+helpMessage["web"]    = "      generate website"
 helpMessage["new"]    = "      new note"
 helpMessage["delete"] = "      delete note"
 helpMessage["change"] = "      edit note"
@@ -123,6 +126,8 @@ helpMessage["search"] = "      search notes with regex"
 helpMessage["command"]= "      run a command in the prompt"
 helpMessage["cfocus"] = "      change window focus (tab)"
 settings["helpMessage"] = helpMessage
+
+from markdown import markdown
 
 def dd(d):
     if type(d) in [str,int,float,dict,list]:
@@ -147,6 +152,8 @@ def updateBuffer(buffer,char,pos=0):
 
 try:
     import private_settings
-    htmlsync = private_settings.htmlsync
+    settings["htmlsync"] = private_settings.htmlsync
+    settings["siteUrl"] = private_settings.siteUrl
 except:
-    htmlsync = ""
+    settings["htmlsync"] = ""
+    settings["siteUrl"] = ""
