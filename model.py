@@ -71,7 +71,7 @@ class model:
         self._shortcutMap = settings["shortcutMap"]
         self._helpMessage = settings["helpMessage"]
         self._commandMap = {}
-        self._commandMap["web"]    = lambda cmds: self._generateWebsite()
+        self._commandMap["publish"]= lambda cmds: self._publishWebsite()
         self._commandMap["sort"]   = lambda cmds: self._changeSort(cmds)
         self._commandMap["key"]    = lambda cmds: self._setSearchKey(cmds)
         self._commandMap["search"] = lambda cmds: self._performSearch()
@@ -281,7 +281,7 @@ class model:
         self._updateFileView()
         self._updateNotesView()
 
-    def _generateWebsite(self):
+    def _publishWebsite(self):
         name = self._index[self._filePos]
         meta = self._index.getMeta(name)
         fullname = meta["dirName"]
