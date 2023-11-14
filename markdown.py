@@ -149,7 +149,7 @@ class markdown:
 
         # Copy meta
         cmd = f'cp {os.path.join(self._notePath,"meta.json")} {self._htmlPath}'
-        os.popen(cmd)
+        os.popen(cmd).read()
 
 
         # Load HTML template
