@@ -230,12 +230,16 @@ class view:
         if update==None: return
         if update["instruction"] == "textentry":
             leaderLen = len(update["leader"])
+            # Could put an overflow check here for long commands (currently crashes)
             self._text(self._commandScreen,0,0,update["leader"],color=self._commandColor)
             self._text(self._commandScreen,0,leaderLen,update["content"],color=self._commandColor)
         elif update["instruction"] == "notify":
-            self._text(self._commandScreen,0,0,update["content"],color=self._commandColor)
+            text = update["content"][:self._lastScreenX-1]
+            self._text(self._commandScreen,0,0,text,color=self._commandColor)
         elif update["instruction"] == "clear":
             pass
+
+        # trim text to fit
 
     def updateFilesData(self):
         log("VIEW: updateFilesData")
