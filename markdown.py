@@ -120,7 +120,7 @@ class markdown:
                     # log(name,line)
                     # break
 
-        note = "\n".join(note)
+        note = "<p>\n".join(note)
 
         for blockHolder,blockText in self.blockMapper.items():
             # log(blockHolder,blockText.group(1))
