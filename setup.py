@@ -19,15 +19,17 @@ def log(*text):
     f.write(str(text)+"\n")
     f.close()
 
-debug = 0
+debug = 1
 
 thispath = os.path.dirname(os.path.abspath(__file__))
 
 if debug:
     remotepath = thispath #debug
+    htmlpath = "/eos/user/a/aawhite/www/notes"
     logon = True
 else:
     remotepath = "/home/prime/sshfs/lxp/notes"
+    htmlpath = "/eos/user/a/aawhite/www/notes"
     logon = False
 
 
@@ -80,6 +82,7 @@ settings["filesWidth"] = 30
 settings["commandHistoryPath"] = os.path.join(thispath,"history.txt")
 settings["indexPath"] = os.path.join(remotepath,"storedIndex.pickle")
 settings["dataPath"] = os.path.join(remotepath,"data")
+settings["htmlPath"] = os.path.join(htmlpath,"pages")
 settings["tmpPath"] = "/tmp/notetmp"
 settings["delPath"] = "/tmp/notetrash"
 
@@ -142,4 +145,8 @@ def updateBuffer(buffer,char,pos=0):
     pos = min(pos,len(buffer))
     return buffer,pos
 
-
+try:
+    import private_settings
+    htmlsync = private_settings.htmlsync
+except:
+    htmlsync = ""
