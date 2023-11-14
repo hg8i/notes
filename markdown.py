@@ -153,7 +153,8 @@ class markdown:
 
 
         # Load HTML template
-        template = open("htmlResources/template.html").read()
+        thispath = os.path.dirname(os.path.abspath(__file__))
+        template = open(os.path.join(thispath,"htmlResources/template.html")).read()
         page = template.format(self.htmlTitle,self.htmlTable,self.htmlNote)
 
         # save webpage
