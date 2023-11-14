@@ -147,6 +147,10 @@ class markdown:
         oFile.write("SetHandler none")
         oFile.flush()
 
+        # Copy meta
+        cmd = f'cp {os.path.join(self._notePath,"meta.json")} {self._htmlPath}'
+        os.popen(cmd)
+
 
         # Load HTML template
         template = open("htmlResources/template.html").read()
