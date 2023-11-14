@@ -136,9 +136,15 @@ class markdown:
         oFile = open(oPath,"w")
         oFile.write(self.htmlTable)
         oFile.flush()
+
         oPath = os.path.join(self._htmlPath,"note.html")
         oFile = open(oPath,"w")
         oFile.write(self.htmlNote)
+        oFile.flush()
+
+        oPath = os.path.join(self._htmlPath,".htaccess")
+        oFile = open(oPath,"w")
+        oFile.write("SetHandler none")
         oFile.flush()
 
 
