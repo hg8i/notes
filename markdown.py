@@ -106,7 +106,7 @@ class markdown:
             'subbullet':{'e':re.compile(r'^(?:[\*]{2}|\s{4}\*)\s+(.*)'),'r':r'<ul><li>\1</li></ul>'},
             'ssbullet': {'e':re.compile(r'^(?:[\*]{3}|\s{8}\*)\s+(.*)'),'r':r'<ul><ul><li>\1</li></ul></ul>'},
             'freeurl':  {'e':re.compile(r'((http[s]?://|www.)[^\s)><]+)(?![^()]*\))'),'r':r'<a href="\1">\1</a>'}, # needs to come BEFORE link
-            'link':     {'e':re.compile(r'(^|[^!]){1}\[(.*)\]\((.*)\)'),'r':r'\1<a href="\2">\3</a>'},
+            'link':     {'e':re.compile(r'(^|[^!]){1}\[(.*)\]\((.*)\)'),'r':r'\1<a href="\3">\2</a>'},
             'image':    {'e':re.compile(r'!\[(.*)\]\((.*)\)'),'r':r'<a href="\2"><img src="\2" alt="\1" width="300"></a>'},
             'preform':  {'e':re.compile(r'^>(.*)'),'r':r'<pre id="pre-inline">\1</pre>'},
         }
