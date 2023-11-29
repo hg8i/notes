@@ -163,8 +163,6 @@ class markdown:
         oFile = open(oPath,"w")
         oFile.write(page)
         oFile.flush()
-        print("Saved to",oPath)
-        quit()
 
         # Synchronize to EOS
         cmd = settings["htmlsync"].format(self._htmlPath,settings["htmlPath"])
