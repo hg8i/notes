@@ -20,6 +20,7 @@ class model:
         self._note_o = self._manager.Queue()
         self._file_i = self._manager.Queue()
         self._file_o = self._manager.Queue()
+        self._markdown_o = self._manager.Queue()
         self._char_queue = self._manager.Queue() # input from controller
         curses.curs_set(0)
 
@@ -54,6 +55,7 @@ class model:
         self._view = view.view(self._screen,inputq=self._view_i,outputq=self._view_o,event=self._view_e)
 
         self.noteloaderThreads = []
+        self.markdownThreads = []
 
         self._commandBuffer=""
         self._commandLeader=":"
@@ -286,12 +288,17 @@ class model:
         meta = self._index.getMeta(name)
         fullname = meta["dirName"]
 
-        md = markdown(fullname)
-        mdThread = multiprocessing.Process(target=md.run)
-        mdThread.start()
+        md = markdown(fullname,self._markdown_o)
+        self.markdownThreads.append(multiprocessing.Process(target=md.run))
 
-        status = f"Publishing to {settings['siteUrl'].format(fullname)}"
-        self._notify(status)
+        self.markdownThreads[-1].start()
+        # status = f"Publishing to {settings['siteUrl'].format(fullname)}"
+        # self._notify(status)
+
+        # mdThread.join()
+        # status = f"Published to {settings['siteUrl'].format(fullname)}"
+        # self._notify(status)
+
 
     def _showHelp(self):
         fields = []
@@ -636,23 +643,31 @@ class model:
             # transfer queues
             # while self._char_queue.qsize():
 
-            char = self._char_queue.get()
-            log(f"Processing char: {chr(char)}")
+            while not self._char_queue.empty():
 
-            if chr(char) in self._hotkeyMap.keys():
-                command = self._hotkeyMap[chr(char)]
-                self._commandMap[command](None)
+                char = self._char_queue.get()
+                log(f"Processing char: {chr(char)}")
 
-            elif chr(char) in "0123456789":
-                self.processInputNumbers(char)
+                if chr(char) in self._hotkeyMap.keys():
+                    command = self._hotkeyMap[chr(char)]
+                    self._commandMap[command](None)
 
-            elif self._focus=="filesview":
-                self.processInputFilesview(char)
-            elif self._focus=="notesview":
-                self.processInputNotesView(char)
-            # elif self._focus=="dialog":
-            #     self.processInputDialogView(char)
+                elif chr(char) in "0123456789":
+                    self.processInputNumbers(char)
 
+                elif self._focus=="filesview":
+                    self.processInputFilesview(char)
+                elif self._focus=="notesview":
+                    self.processInputNotesView(char)
+                # elif self._focus=="dialog":
+                #     self.processInputDialogView(char)
+
+
+            while not self._markdown_o.empty():
+                update = self._markdown_o.get()
+                self._notify(update["message"])
+
+            # time.sleep(0.1)
 
             # # emplace commandview frame
             # if char==settings["deleteChar"]:

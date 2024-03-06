@@ -5,8 +5,9 @@ from setup import *
 """
 
 class markdown:
-    def __init__(self,name):
+    def __init__(self,name,outputq):
         self._name = name
+        self._output = outputq
         # self.pageHead = [] # metadata
         self.htmlTable = "" # meta file text
         self.htmlNote = "" # note text
@@ -25,9 +26,12 @@ class markdown:
         log(f"Generating note from {self._notePath}")
         log(f"Saving page to {self._htmlPath}")
 
+        self._output.put({"type":"markdown","message":f"Parsing to {self._name}"})
         self.parseJson()
         self.parseMarkdown()
+        self._output.put({"type":"markdown","message":f"Publishing to {self._name}"})
         self.save()
+        self._output.put({"type":"markdown","message":f"Published to {settings['siteUrl'].format(self._name)}"})
 
     def parseJson(self):
         meta     = json.load(open(os.path.join(self._notePath,"meta.json"),"r"))
@@ -98,6 +102,8 @@ class markdown:
 
         # Perform majority of HTML conversions
         expressions = {
+            'xml<':     {'e':re.compile(r'\<'),'r':r'&lt;'},
+            'xml>':     {'e':re.compile(r'\>'),'r':r'&gt;'},
             'h1':       {'e':re.compile(r'^\s*#\s*([^#\n\r]+)'),'r':r'<h1>\1</h1>'},
             'h2':       {'e':re.compile(r'^\s*##\s*([^#\n\r]+)'),'r':r'<h2>\1</h2>'},
             'h3':       {'e':re.compile(r'^\s*###\s*([^#\n\r]+)'),'r':r'<h3>\1</h3>'},
