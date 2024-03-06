@@ -7,7 +7,7 @@ class controller:
         self._input = inputq
         self._screen = screen
         self._pause = False
-        # self._event = event
+        self._event = event
 
     #: def pause(self):
     #     """ Pause view output """
@@ -31,3 +31,4 @@ class controller:
             char = self._screen.getch()
             # log(f"=========================== CHARACTER: {chr(char)}")
             self._charq.put(char)
+            self._event.set()

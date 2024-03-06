@@ -5,8 +5,9 @@ from setup import *
 """
 
 class markdown:
-    def __init__(self,name,outputq):
+    def __init__(self,name,outputq,event):
         self._name = name
+        self._event = event
         self._output = outputq
         # self.pageHead = [] # metadata
         self.htmlTable = "" # meta file text
@@ -26,12 +27,15 @@ class markdown:
         log(f"Generating note from {self._notePath}")
         log(f"Saving page to {self._htmlPath}")
 
-        self._output.put({"type":"markdown","message":f"Parsing to {self._name}"})
+        self._output.put({"type":"markdown","message":f"Parsing note {self._name}"})
+        self._event.set()
         self.parseJson()
         self.parseMarkdown()
-        self._output.put({"type":"markdown","message":f"Publishing to {self._name}"})
+        self._output.put({"type":"markdown","message":f"Publishing note {self._name}"})
+        self._event.set()
         self.save()
         self._output.put({"type":"markdown","message":f"Published to {settings['siteUrl'].format(self._name)}"})
+        self._event.set()
 
     def parseJson(self):
         meta     = json.load(open(os.path.join(self._notePath,"meta.json"),"r"))

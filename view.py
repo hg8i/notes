@@ -2,12 +2,11 @@ from setup import *
 import drawing
 
 class view:
-    def __init__(self,screen,inputq=None,outputq=None,event=None):
+    def __init__(self,screen,inputq=None,outputq=None):
         self._screen = screen
         self._input = inputq
         self._output = outputq
         self._lastScreenY,self._lastScreenX = None,None
-        # self._event = event
 
         self._commandColor = 1
         curses.init_pair(self._commandColor, settings["fgColorCommandView"],settings["bkColorCommandView"])

@@ -39,20 +39,21 @@ class model:
         }
 
         # Events (for pausing threads)
-        self._controller_e = multiprocessing.Event()
-        self._view_e       = multiprocessing.Event()
-        self._note_e       = multiprocessing.Event()
-        self._file_e       = multiprocessing.Event()
+        # self._controller_e = multiprocessing.Event()
+        # self._view_e       = multiprocessing.Event()
+        # self._note_e       = multiprocessing.Event()
+        # self._file_e       = multiprocessing.Event()
+        self._event        = self._manager.Event()
 
-        # set events
-        self._controller_e.set()
-        self._view_e.set()
-        self._note_e.set()
-        self._file_e.set()
+        # # set events
+        # self._controller_e.set()
+        # self._view_e.set()
+        # self._note_e.set()
+        # self._file_e.set()
 
         # objects
-        self._controller = controller.controller(self._screen,inputq=self._controller_i,outputq=self._controller_o,charq=self._char_queue,event=self._controller_e)
-        self._view = view.view(self._screen,inputq=self._view_i,outputq=self._view_o,event=self._view_e)
+        self._controller = controller.controller(self._screen,inputq=self._controller_i,outputq=self._controller_o,charq=self._char_queue,event=self._event)
+        self._view = view.view(self._screen,inputq=self._view_i,outputq=self._view_o)
 
         self.noteloaderThreads = []
         self.markdownThreads = []
@@ -288,7 +289,7 @@ class model:
         meta = self._index.getMeta(name)
         fullname = meta["dirName"]
 
-        md = markdown(fullname,self._markdown_o)
+        md = markdown(fullname,self._markdown_o,self._event)
         self.markdownThreads.append(multiprocessing.Process(target=md.run))
 
         self.markdownThreads[-1].start()
@@ -642,6 +643,9 @@ class model:
 
             # transfer queues
             # while self._char_queue.qsize():
+
+            self._event.wait()
+            self._event.clear()
 
             while not self._char_queue.empty():
 
