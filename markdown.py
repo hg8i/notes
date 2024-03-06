@@ -93,7 +93,11 @@ class markdown:
             destination = f"images/{os.path.basename(destination)}"
             note = re.sub(origin,destination,note)
 
-        # Exclude blocks of preformatted text, save in dictionary
+        # STEP 1: Replace every < and >
+        note = re.sub(">",r'&gt;',note)
+        note = re.sub("<",r'&lt;',note)
+
+        # STEP 2: Exclude blocks of preformatted text, save in dictionary
         self.blockCounter = 0
         self.blockMapper = {}
         blockPattern = re.compile(r'```\n*([\s\S]*?)\n*```')
@@ -104,10 +108,8 @@ class markdown:
         note = note.split("\n")
         note = [l.rstrip() for l in note]
 
-        # Perform majority of HTML conversions
+        # STEP 3: Perform majority of HTML conversions
         expressions = {
-            'xml<':     {'e':re.compile(r'\<'),'r':r'&lt;'},
-            'xml>':     {'e':re.compile(r'\>'),'r':r'&gt;'},
             'h1':       {'e':re.compile(r'^\s*#\s*([^#\n\r]+)'),'r':r'<h1>\1</h1>'},
             'h2':       {'e':re.compile(r'^\s*##\s*([^#\n\r]+)'),'r':r'<h2>\1</h2>'},
             'h3':       {'e':re.compile(r'^\s*###\s*([^#\n\r]+)'),'r':r'<h3>\1</h3>'},

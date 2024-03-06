@@ -19,9 +19,12 @@ def log(*text):
     f.write(str(text)+"\n")
     f.close()
 
-debug = 0
 
 thispath = os.path.dirname(os.path.abspath(__file__))
+if "/home/prime/dev/notes" in thispath:
+    debug = 1
+else:
+    debug = 0
 
 if debug:
     remotepath = thispath #debug
