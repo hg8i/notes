@@ -22,16 +22,16 @@ def log(*text):
 
 thispath = os.path.dirname(os.path.abspath(__file__))
 if "/home/prime/dev/notes" in thispath:
-    debug = 1
-else:
     debug = 0
+else:
+    debug = 1
 
 if debug:
     remotepath = thispath #debug
     htmlpath = "/eos/user/a/aawhite/www/notes"
     logon = True
 else:
-    remotepath = "/home/prime/sshfs/lxp/notes"
+    remotepath = "/home/prime/sshfs/afs/notes"
     htmlpath = "/eos/user/a/aawhite/www/notes"
     logon = False
 

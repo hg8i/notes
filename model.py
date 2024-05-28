@@ -121,7 +121,7 @@ class model:
             data = {}
             data["type"] = "dialogview"
             char = self._char_queue.get()
-            if char in [settings["escapeChar"],settings["enterChar"],ord("h"),ord("n")]:
+            if char in [settings["escapeChar"],settings["enterChar"],ord("h"),ord("q"),ord("n")]:
                 data["instruction"] = "closedialog"
                 self._view_i.put(data)
                 return fields
@@ -317,6 +317,11 @@ class model:
             data["content"] = self._helpMessage[name]
             data["cursorPos"] = 0
             fields.append(data)
+        fields.append({"name":"Info","divider":"-"})
+        fields.append({"name":"dataPath","cursorPos":0,"content":settings["dataPath"]})
+        fields.append({"name":"htmlPath","cursorPos":0,"content":settings["htmlPath"]})
+        fields.append({"name":"indexPath","cursorPos":0,"content":settings["indexPath"]})
+        fields.append({"name":"tmpPath","cursorPos":0,"content":settings["tmpPath"]})
         self._runDialog(fields,name="Help Menu")
 
     def _changeSort(self,cmds):

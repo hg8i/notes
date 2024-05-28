@@ -150,7 +150,8 @@ class view:
                 content = field["content"]
                 cursorPos = field["cursorPos"]
                 showCursor = "showCursor" in field.keys() and field["showCursor"]
-                content = str(content)[:self._dialogW-nameLength]
+                # content = str(content)[:self._dialogW-nameLength-2]
+                content = str(content)[:screenX-nameLength-2]
                 self._text(self._dialogScreen,yPos,1,name,color=self._dialogColor)
                 self._text(self._dialogScreen,yPos,nameLength,content,color=self._dialogColor)
                 if showCursor:
@@ -164,7 +165,7 @@ class view:
             elif "divider" in field.keys():
                 name = field["name"]+" "
                 divider = field["divider"]*(self._dialogW-2-len(name))
-                line = f"{name}{divider}"[:self._dialogW-2]
+                line = f"{name}{divider}"[:screenX-2]
                 self._text(self._dialogScreen,yPos,1,line,color=self._dialogColor)
 
 

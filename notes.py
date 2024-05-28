@@ -15,7 +15,6 @@ def main(screen):
     if not os.path.exists(settings["delPath"]):
         os.makedirs(settings["delPath"])
 
-
     indexPath = settings["indexPath"]
     if "-p" in sys.argv:
         index = noteindex(loadPickle=0,picklePath=indexPath)
@@ -31,9 +30,7 @@ def main(screen):
     m = model.model(screen,index)
     m.run()
 
-
-
-
 if __name__=="__main__":
     wrapper(main)
+    # main(None)
 
