@@ -115,12 +115,13 @@ class view:
 
         if update["instruction"] == "newdialog":
             # self._dialogActive = True
+            screenY,screenX = self._screen.getmaxyx()
             self._dialogInputMode = update["inputs"]
             self._dialogFields = update["fields"]
             self._dialogActiveField = update["activeField"]
             self._dialogLongestName = max([len(n["name"]) for n in self._dialogFields])
             self._dialogName = update["name"]
-            self._dialogW = 80
+            self._dialogW = min(60,screenX-8)
             self._dialogH = 2+len(self._dialogFields)*[1,3][self._dialogInputMode]
             self._makeDialogScreen()
 
