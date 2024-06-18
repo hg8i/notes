@@ -159,4 +159,4 @@ try:
     settings["siteUrl"] = private_settings.siteUrl
 except:
     settings["htmlsync"] = ""
-    settings["siteUrl"] = "... please set siteUrl in settings.py"
+    settings["siteUrl"] = "... please set siteUrl and htmlsync in private_settings.py"
