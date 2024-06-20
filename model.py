@@ -449,8 +449,21 @@ class model:
         # copy files to temporary directory
         cmd = f"cp -r {noteDir} {tmpDir}"
         os.popen(cmd)
+        self._notify("Copying remote to local")
         while not os.path.exists(tmpDir):
             time.sleep(0.01)
+        self._notify("Checking note file copied")
+        while not os.path.exists(tmpNotePath):
+            time.sleep(0.01)
+
+        # Make sure file isn't empty
+        size = os.path.getsize(tmpNotePath)
+        while size==0:
+            size = os.path.getsize(tmpNotePath)
+            self._notify(f"Checking note file copied: {size}")
+            time.sleep(0.01)
+        time.sleep(0.01)
+
 
         # Launch file watcher
         inputq = self._manager.Queue()

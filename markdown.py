@@ -34,7 +34,7 @@ class markdown:
         self._output.put({"type":"markdown","message":f"Publishing note {self._name}"})
         self._event.set()
         self.save()
-        self._output.put({"type":"markdown","message":f"Published to {settings['siteUrl'].format(self._name)}"})
+        self._output.put({"type":"markdown","message":f"[DONE] Published to {settings['siteUrl'].format(self._name)}"})
         self._event.set()
 
     def parseJson(self):
@@ -77,7 +77,8 @@ class markdown:
         imagePattern = re.compile(r'!\[(.*)\]\((.*)\)')
         images = imagePattern.findall(note)
         for (alt,path) in images:
-            imageMovements[path] = self.getUniquePath(self._htmlImages,os.path.basename(path))
+            imageMovements[path] = os.path.join(self._htmlImages,os.path.basename(path))
+            # imageMovements[path] = self.getUniquePath(self._htmlImages,os.path.basename(path))
             # determine if it is an absolute path or a relative path
             if path[0]=="/":
                 # absolute path
