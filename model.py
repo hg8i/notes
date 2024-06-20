@@ -454,16 +454,17 @@ class model:
             time.sleep(0.01)
         self._notify("Checking note file copied")
         while not os.path.exists(tmpNotePath):
-            time.sleep(0.01)
+            time.sleep(0.05)
 
         # Make sure file isn't empty
-        size = os.path.getsize(tmpNotePath)
-        while size==0:
-            size = os.path.getsize(tmpNotePath)
-            self._notify(f"Checking note file copied: {size}")
-            time.sleep(0.01)
-        time.sleep(0.01)
-
+        copiedSize = os.path.getsize(tmpNotePath)
+        remoteSize = os.path.getsize(notePath)
+        notePath = os.path.join(noteDir,"note.md")
+        while copiedSize!=remoteSize:
+            copiedSize = os.path.getsize(tmpNotePath)
+            self._notify(f"Checking note file copied: {copiedSize}b")
+            time.sleep(0.05)
+        time.sleep(0.05)
 
         # Launch file watcher
         inputq = self._manager.Queue()

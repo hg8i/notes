@@ -181,7 +181,29 @@ class markdown:
         cmd = settings["htmlsync"].format(self._htmlPath,settings["htmlPath"])
         log(f"Synced to: https://aawhite.web.cern.ch/notes/pages")
         log(cmd)
-        os.popen(cmd).read()
+        # os.popen(cmd).read()
+
+        self._output.put({"type":"markdown","message":f"Starting copy: {cmd}"})
+        self._event.set()
+
+        import subprocess
+        cmd = cmd.split()
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,text=1)
+        while True:
+            std = process.stdout.readline()
+            if std:
+                c = repr(std.strip())
+                self._output.put({"type":"markdown","message":f"Publishing note: {c}"}); self._event.set()
+            err = process.stderr.readline()
+            if err:
+                c = repr(err.strip())
+                self._output.put({"type":"markdown","message":f"Publishing note: {c}"}); self._event.set()
+            # check if thread is done and no output
+            p = process.poll()
+            if p!=None and std=="" and err=="":
+                break
+        time.sleep(5)
+
 
 
 if __name__=="__main__":
