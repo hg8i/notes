@@ -86,7 +86,6 @@ class markdown:
             u+=1
         return ret
 
-
     def parseMarkdown(self):
 
         note = open(os.path.join(self._notePath,"note.md"),"r").read()
@@ -139,7 +138,7 @@ class markdown:
             'ssbullet': {'e':re.compile(r'^(?:[\*]{3}|\s{8}\*)\s+(.*)'),'r':r'<ul><ul><li>\1</li></ul></ul>'},
             'freeurl':  {'e':re.compile(r'((http[s]?://|www.)[^\s)><]+)(?![^()]*\))'),'r':r'<a href="\1">\1</a>'}, # needs to come BEFORE link
             'link':     {'e':re.compile(r'(^|[^!]){1}\[(.*)\]\((.*)\)'),'r':r'\1<a href="\3">\2</a>'},
-            'image':    {'e':re.compile(r'!\[(.*)\]\((.*)\)'),'r':r'<a href="\2"><img src="\2" alt="\1" width="300"></a>'},
+            'image':    {'e':re.compile(r'!\[(.*)\]\((.*)\)'),'r':r'<a href="\2"><img src="\2" alt="\1" width="500"></a>'},
             'preform':  {'e':re.compile(r'^>(.*)'),'r':r'<pre id="pre-inline">\1</pre>'},
         }
         for iLine,line in enumerate(note):
