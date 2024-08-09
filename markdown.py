@@ -60,7 +60,7 @@ class markdown:
         meta     = json.load(open(os.path.join(self._notePath,"meta.json"),"r"))
         rows = {}
         rows[" "]     = meta["name"] if "name" in meta.keys() else "Name"
-        rows[" "]     = rows[" "].capitalize()
+        # rows[" "]     = rows[" "].capitalize()
         rows["Created:"]  = meta["created"] if "created" in meta.keys() else "No creation date"
         rows["Modified:"] = meta["modified"] if "modified" in meta.keys() else "No modification date"
         html = ""
