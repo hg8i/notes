@@ -8,6 +8,8 @@ import re
 import pickle
 
 from subprocess import call
+import subprocess
+import threading
 
 logon = True
 os.popen("rm log.txt"); time.sleep(0.01)
@@ -31,10 +33,11 @@ if debug:
     htmlpath = "/eos/user/a/aawhite/www/notes"
     logon = True
 else:
-    remotepath = "/home/prime/sshfs/afs/notes"
+    remotepath = "/home/prime/afs/notes"
     htmlpath = "/eos/user/a/aawhite/www/notes"
     logon = False
 
+htmlview = "vimb -c /home/prime/.vimbrc-notes"
 
 settings = {}
 
@@ -59,6 +62,7 @@ color_dark_grey= 235
 color_mid_grey= 244
 color_light_grey= 252
 
+settings["htmlview"]         = htmlview
 settings["deleteChar"]         = 263
 settings["ctrlUChar"]         = 21
 settings["enterChar"]         = 10
@@ -99,10 +103,12 @@ hotkeyMap["h"] = "help"
 hotkeyMap["n"] = "new"
 hotkeyMap[":"] = "command"
 hotkeyMap["p"] = "publish"
+hotkeyMap["v"] = "webview"
 settings["hotkeyMap"] = hotkeyMap
 
 shortcutMap = defaultdict(lambda:None)
 shortcutMap["p"] = "publish"
+shortcutMap["v"] = "webview"
 shortcutMap["b"] = "pickle"
 shortcutMap["k"] = "key"
 shortcutMap["n"] = "new"

@@ -1,0 +1,105 @@
+#!/bin/env python3
+
+"""
+Program to take pictures, return markdown for vim
+"""
+
+import tkinter as tk
+import re
+import sys,os,time
+import subprocess
+import threading
+mdFilePath = sys.argv[1]
+# mdFilePath = "/tmp/notetmp/090824-image_test.note_1723216803.8530471"
+
+class vimpic:
+    def __init__(self,mdFilePath):
+        self.w = tk.Tk()
+        self.w.title("Screenshot Tool")
+        self.w.resizable(False, False)
+        # self.w.overrideredirect(True)
+        self.mdFilePath = mdFilePath
+        self.vimdir = os.path.dirname(mdFilePath)
+        self.picdir = os.path.join(self.vimdir,"figures")
+        # w.geometry("200x200")
+        self.checkExistingNames()
+
+        self.output = []
+
+        if not os.path.exists(self.picdir):
+            os.makedirs(self.picdir)
+        while not os.path.exists(self.picdir):
+            time.sleep(0.1)
+
+        fsize = 8
+
+        self.entry = tk.Entry(fg="red", bg="white", width=10)
+        self.entry.bind("<Return>", self.screenshotevent)
+        self.entry.focus_set()
+        self.entry.pack()
+
+        button = tk.Button(self.w, text="Screenshot", width=10, height=1, bg="blue", fg="yellow", command=self.screenshot,font=("Mono",fsize))
+        button.pack()
+
+        frame = tk.Frame(self.w)
+        frame.pack()
+
+        button = tk.Button(frame, text="+", width=4, height=1, bg="blue", fg="yellow", command=self.screenshots,font=("Mono",fsize))
+        button.pack(side=tk.LEFT)
+
+        button = tk.Button(frame, text="X", width=4, height=0, bg="red", fg="yellow", command=self.quit,font=("Mono",fsize))
+        button.pack(side=tk.RIGHT)
+
+    def checkExistingNames(self):
+        """ Check which file names already exist in the file
+            These probably exist in remote repo, better not use them
+        """
+        self.existingNames = []
+        mdData = open(self.mdFilePath,"r").read()
+        expr = re.compile(r"!\[\]\(figures\/(.*)\)")
+        self.existingNames = re.findall(expr,mdData)
+
+    def screenshotevent(self,event):
+        self.screenshots()
+        self.quit()
+
+    def screenshot(self):
+        self.screenshots()
+        self.quit()
+
+    def screenshots(self):
+        entry = self.entry.get()
+        if len(entry): name = entry
+        else: name = "pic"
+        if len(name)<4 and name[-4:]==".png":
+            name=name[:-4]
+
+        # get unique name
+        u = 0
+        oPath = os.path.join(self.picdir,f"{name}.png")
+        relName = f"figures/{name}.png"
+        while os.path.exists(oPath) or relName in self.existingNames:
+            oPath = os.path.join(self.picdir,f"{name}-{u}.png")
+            relName = f"figures/{name}-{u}.png"
+            u+=1
+
+        # cmd = f"touch {oPath}"
+        # os.popen(cmd).read()
+        cmd = f"gnome-screenshot -a -f {oPath}"
+        subprocess.run(cmd.split(),stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        # print(cmd)
+        # print("relname:",relName)
+        self.output.append(f"![]({relName}) %")
+
+    def quit(self):
+        for o in self.output:
+            print(o)
+        quit()
+
+    def run(self):
+        self.w.mainloop()
+
+
+if __name__=="__main__":
+    v = vimpic(mdFilePath)
+    v.run()

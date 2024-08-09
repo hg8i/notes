@@ -23,19 +23,38 @@ class markdown:
         os.makedirs(self._htmlImages,exist_ok=1)
         while not os.path.exists(self._htmlPath): time.sleep(0.01)
 
-    def run(self):
+    def run_view(self):
+        """ Generate website and view it with command defined in setup.py
+        """
         log(f"Generating note from {self._notePath}")
         log(f"Saving page to {self._htmlPath}")
-
-        self._output.put({"type":"markdown","message":f"Parsing note {self._name}"})
-        self._event.set()
+        self.report(f"Parsing note {self._name}")
         self.parseJson()
         self.parseMarkdown()
-        self._output.put({"type":"markdown","message":f"Publishing note {self._name}"})
-        self._event.set()
-        self.save()
-        self._output.put({"type":"markdown","message":f"[DONE] Published to {settings['siteUrl'].format(self._name)}"})
-        self._event.set()
+        self.report(f"Generating note {self._name}")
+        path = self.generateSite()
+        self.report(f"Note generated to {path}")
+        cmd = f'{settings["htmlview"]} {path}'
+        self.report(f"Run {cmd}")
+        # launch 
+        prog = lambda: subprocess.run(cmd.split(),stderr=subprocess.DEVNULL)
+        thread = threading.Thread(target=prog)
+        thread.start()
+
+        # self.save()
+        # self.report(f"[DONE] Published to {settings['siteUrl'].format(self._name)}"})
+
+    def run_publish(self):
+        """ Publish website to location from private_settings.py
+        """
+        log(f"Generating note from {self._notePath}")
+        log(f"Saving page to {self._htmlPath}")
+        self.report(f"Parsing note {self._name}")
+        self.parseJson()
+        self.parseMarkdown()
+        self.report(f"Publishing note {self._name}")
+        self.publishSite()
+        self.report(f"[DONE] Published to {settings['siteUrl'].format(self._name)}")
 
     def parseJson(self):
         meta     = json.load(open(os.path.join(self._notePath,"meta.json"),"r"))
@@ -143,7 +162,21 @@ class markdown:
 
         self.htmlNote = note
 
-    def save(self):
+    def generateSite(self):
+        # Load HTML template
+        thispath = os.path.dirname(os.path.abspath(__file__))
+        template = open(os.path.join(thispath,"htmlResources/template.html")).read()
+        page = template.format(self.htmlTitle,self.htmlTable,self.htmlNote)
+
+        # save webpage
+        oPath = os.path.join(self._htmlPath,"index.html")
+        oFile = open(oPath,"w")
+        oFile.write(page)
+        oFile.flush()
+        return oPath
+
+    def publishSite(self):
+    # def save(self):
 
         # Save text files
         oPath = os.path.join(self._htmlPath,"table.html")
@@ -183,8 +216,7 @@ class markdown:
         log(cmd)
         # os.popen(cmd).read()
 
-        self._output.put({"type":"markdown","message":f"Starting copy: {cmd}"})
-        self._event.set()
+        self.report(f"Starting copy: {cmd}")
 
         import subprocess
         cmd = cmd.split()
@@ -193,11 +225,11 @@ class markdown:
             std = process.stdout.readline()
             if std:
                 c = repr(std.strip())
-                self._output.put({"type":"markdown","message":f"Publishing note: {c}"}); self._event.set()
+                self.report(f"Publishing note: {c}")
             err = process.stderr.readline()
             if err:
                 c = repr(err.strip())
-                self._output.put({"type":"markdown","message":f"Publishing note: {c}"}); self._event.set()
+                self.report(f"Publishing note: {c}")
             # check if thread is done and no output
             p = process.poll()
             if p!=None and std=="" and err=="":
@@ -205,6 +237,12 @@ class markdown:
         time.sleep(5)
 
 
+    def report(self,m):
+        """ Report a message to main thread
+        """
+        self._output.put({"type":"markdown","message":m}); 
+        # set event to notify main thread of change
+        self._event.set()
 
 if __name__=="__main__":
     md = markdown("061123-hey.note")

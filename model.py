@@ -75,6 +75,7 @@ class model:
         self._helpMessage = settings["helpMessage"]
         self._commandMap = {}
         self._commandMap["publish"]= lambda cmds: self._publishWebsite()
+        self._commandMap["webview"]= lambda cmds: self._webview()
         self._commandMap["sort"]   = lambda cmds: self._changeSort(cmds)
         self._commandMap["key"]    = lambda cmds: self._setSearchKey(cmds)
         self._commandMap["search"] = lambda cmds: self._performSearch()
@@ -284,15 +285,26 @@ class model:
         self._updateFileView()
         self._updateNotesView()
 
+    def _webview(self):
+        name = self._index[self._filePos]
+        meta = self._index.getMeta(name)
+        fullname = meta["dirName"]
+
+        md = markdown(fullname,self._markdown_o,self._event)
+        self.markdownThreads.append(multiprocessing.Process(target=md.run_view))
+        self.markdownThreads[-1].start()
+
+
     def _publishWebsite(self):
         name = self._index[self._filePos]
         meta = self._index.getMeta(name)
         fullname = meta["dirName"]
 
         md = markdown(fullname,self._markdown_o,self._event)
-        self.markdownThreads.append(multiprocessing.Process(target=md.run))
+        self.markdownThreads.append(multiprocessing.Process(target=md.run_publish))
 
         self.markdownThreads[-1].start()
+
         # status = f"Publishing to {settings['siteUrl'].format(fullname)}"
         # self._notify(status)
 
