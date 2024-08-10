@@ -9,7 +9,6 @@ import re
 import sys,os,time
 import subprocess
 import threading
-mdFilePath = sys.argv[1]
 # mdFilePath = "/tmp/notetmp/090824-image_test.note_1723216803.8530471"
 
 class vimpic:
@@ -101,5 +100,11 @@ class vimpic:
 
 
 if __name__=="__main__":
-    v = vimpic(mdFilePath)
-    v.run()
+    if "-h" in sys.argv or len(sys.argv)<2:
+        print("This script is meant to be called by a text editor. It launches a small GUI that takes screenshots, and then returns markdown-format images.")
+        print("Consider adding this to a .vimrc: ")
+        print("\t","nnoremap zp :let output=system('/home/prime/dev/notes/vpic ' . expand('%:p'))<CR> :execute 'normal! o' . output<CR>")
+    else:
+        mdFilePath = sys.argv[1]
+        v = vimpic(mdFilePath)
+        v.run()
