@@ -30,11 +30,11 @@ else:
 
 if debug:
     remotepath = thispath #debug
-    htmlpath = "/eos/user/a/aawhite/www/notes"
+    htmlpath = "/eos/home-a/aawhite/www/notes"
     logon = True
 else:
     remotepath = "/home/prime/afs/notes"
-    htmlpath = "/eos/user/a/aawhite/www/notes"
+    htmlpath = "/eos/home-a/aawhite/www/notes"
     logon = False
 
 htmlview = "vimb -c /home/prime/.vimbrc-notes"

@@ -1,4 +1,5 @@
 from setup import *
+import subprocess
 
 """
 # Class to generate HTML pages from markdown note directories
@@ -210,31 +211,9 @@ class markdown:
         oFile.flush()
 
         # Synchronize to EOS
-        cmd = settings["htmlsync"].format(self._htmlPath,settings["htmlPath"])
-        log(f"Synced to: https://aawhite.web.cern.ch/notes/pages")
-        log(cmd)
-        # os.popen(cmd).read()
-
-        self.report(f"Starting copy: {cmd}")
-
-        import subprocess
-        cmd = cmd.split()
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,text=1)
-        while True:
-            std = process.stdout.readline()
-            if std:
-                c = repr(std.strip())
-                self.report(f"Publishing note: {c}")
-            err = process.stderr.readline()
-            if err:
-                c = repr(err.strip())
-                self.report(f"Publishing note: {c}")
-            # check if thread is done and no output
-            p = process.poll()
-            if p!=None and std=="" and err=="":
-                break
-        time.sleep(5)
-
+        self.report(f"Copying to {self._htmlPath} to {settings['htmlPath']}")
+        result = settings["htmlsync"](self._htmlPath,settings["htmlPath"])
+        self.report(f"Synced to: https://aawhite.web.cern.ch/notes/pages")
 
     def report(self,m):
         """ Report a message to main thread

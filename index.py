@@ -115,7 +115,12 @@ class noteindex:
 
     def add(self,notePath):
         metaPath = os.path.join(notePath,"meta.json")
-        meta = json.load(open(metaPath,"r"))
+        meta = json.load(open(metaPath,"rb"))
+        # try:
+        #     meta = json.load(open(metaPath,"rb"))
+        # except:
+        #     return
+            # raise Exception(metaPath)
         shortname = meta["shortname"]
         tags = meta["tags"]
         name = meta["name"]
