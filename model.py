@@ -245,10 +245,13 @@ class model:
             name = [f["content"] for f in fields if f["name"]=="name"][0]
             tags = [f["content"] for f in fields if f["name"]=="tags"][0].split(",")
             shortname = name.replace(" ","_")
-            # make new note with index
-        status = self._index.createNote(name=name,shortname=shortname,tags=tags)
 
-        self._notify(status)
+        # if "name" not provided, don't make new note
+        nameGiven = [f["content"] for f in fields if f["name"]=="name"]
+        if any(nameGiven):
+            # make new note with index
+            status = self._index.createNote(name=name,shortname=shortname,tags=tags)
+            self._notify(status)
         self._updateFileView()
         self._updateNotesView()
 
