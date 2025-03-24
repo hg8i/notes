@@ -213,6 +213,9 @@ class noteindex:
             for kk,vv in v.items():
                 if shortname in vv: vv.remove(shortname)
 
+        # update pickle with deleted note removed
+        self.pickleWrite()
+
         return f"Moved {shortname} to {newpath}"
 
     def getPath(self,shortname):
