@@ -30,6 +30,9 @@ class editwatcher:
 
         # self._outputq.put({"message":"Started Edit Watcher"})
 
+    def now(self):
+        return datetime.now().strftime("%d/%m/%y %H:%M::%S")
+
     def tmpToRemote(self,tmp):
         """ Convert path to remote dir, create subdir if needed
         """
@@ -94,6 +97,19 @@ class editwatcher:
                 self._iLog+=1
                 nSync+=1
                 self._trackedFilesSyncedTimes[c] = time.time()
+
+                # update modification time
+                # this is just in case the editor is quit without returning to the main thread
+                # unfortunately, it won't be reflected in the index
+                # to fix this, should put index in its own thread, communicate to it from here
+                metaPath = os.path.join(self._remoteDir,"meta.json")
+                meta = json.load(open(metaPath,"r"))
+                meta["modified"] = self.now()
+                json.dump(meta,open(metaPath,"w"),indent=4)
+
+
+
+
         return nSync
 
 

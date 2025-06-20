@@ -94,6 +94,9 @@ class model:
         # Hopefully helps with garbage printed on start
         self._view_i.put({"type":"forceUpdate"})
 
+    def now(self):
+        return datetime.now().strftime("%d/%m/%y %H:%M::%S")
+
     def _updateCommand(self):
         # Updates command view with the current command being entered
         data = {}
@@ -518,6 +521,10 @@ class model:
         # close filewatcher
         inputq.put({"type":"close"})
         ewThread.join()
+
+        # update meta file
+        meta["modified"] = self.now()
+        self._index.setMeta(meta)
 
         # Message from edit watcher
         ewMessage = f"Syncing may have failed. Check {tmpNotePath}"
