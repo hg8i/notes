@@ -115,12 +115,11 @@ class noteindex:
 
     def add(self,notePath):
         metaPath = os.path.join(notePath,"meta.json")
-        meta = json.load(open(metaPath,"rb"))
-        # try:
-        #     meta = json.load(open(metaPath,"rb"))
-        # except:
-        #     return
-            # raise Exception(metaPath)
+        # meta = json.load(open(metaPath,"rb"))
+        try:
+            meta = json.load(open(metaPath,"rb"))
+        except:
+            raise Exception(f"There is a problem with this file or directory: {metaPath}. Try editing it, or removing it.")
         shortname = meta["shortname"]
         tags = meta["tags"]
         name = meta["name"]
