@@ -452,6 +452,12 @@ class model:
         while o.get()["type"]!="confirm_resume":
             time.sleep(0.05)
 
+    def _safeFileSize(self,path):
+        if os.path.exists(path):
+            return os.path.getsize(path)
+        else:
+            return -1
+
     def _changeNote(self):
         name = self._index[self._filePos]
         meta = self._index.getMeta(name)
@@ -463,7 +469,6 @@ class model:
         tmpDir = os.path.join(settings["tmpPath"],meta["dirName"]+"_"+str(time.time()))
         tmpNotePath = os.path.join(tmpDir,"note.md")
 
-
         # copy files to temporary directory
         cmd = f"cp -r {noteDir} {tmpDir}"
         os.popen(cmd)
@@ -473,6 +478,11 @@ class model:
         self._notify("Checking note file copied")
         while not os.path.exists(tmpNotePath):
             time.sleep(0.05)
+
+        # if note is empty, complain and quit
+        if self._safeFileSize(tmpNotePath)<=0:
+            self._notify(f"DEBUG: Likely error copying to local file (zero bytes copied). Investigate!")
+            return
 
         # Make sure file isn't empty
         copiedSize = os.path.getsize(tmpNotePath)
@@ -534,7 +544,7 @@ class model:
         log("Edit watcher result:",str(ewMessage))
         self._notify(ewMessage)
 
-        log(f"MODEL: cange note {name} done")
+        log(f"MODEL: change note {name} done")
 
     def _changeFocus(self):
         self._iFocus+=1

@@ -34,18 +34,23 @@ class noteloader:
             # safely try to load, with retries
             nLoadTries = 5
             success=False
+            error = "No error"
             while nLoadTries:
                 nLoadTries-=1
                 try:
                     metaData = json.load(open(pathMeta,"r"))
                     textData = open(pathText,"r").readlines()
                     success=True
-                except:
+                except json.JSONDecodeError as e:
+                    error = f"JSON error: {e}"
+                    time.sleep(0.1)
+                except Exception as e:
+                    error = e.message
                     time.sleep(0.1)
 
             # return error if failed to load
             if not success:
-                data = self._noteProblem(msg="Load okay")
+                data = self._noteProblem(msg=f"File error: {error}")
                 self.output.put(data)
                 return
 
@@ -60,6 +65,12 @@ class noteloader:
             data["scroll"]   = self.scrollPos
             self.output.put(data)
 
+    def _safeFileSize(self,path):
+        if os.path.exists(path):
+            return f"{os.path.getsize(path)} bytes"
+        else:
+            return "N/A"
+
     def _noteProblem(self,msg=""):
         """ Problem loading the note, return dummy
         """
@@ -73,7 +84,7 @@ class noteloader:
         data["modified"] = ""
         data["noteText"] = [f"There was a problem loading this note.",
                             msg,
-                            f"    * The meta file exists: {os.path.exists(pathMeta)}.",
-                            f"    * The note .md file exists: {os.path.exists(pathText)}."]
+                            f"    * The meta file exists: {os.path.exists(pathMeta)} ({self._safeFileSize(pathMeta)}).",
+                            f"    * The note .md file exists: {os.path.exists(pathText)} ({self._safeFileSize(pathText)})."]
         data["scroll"]   = self.scrollPos
         return data

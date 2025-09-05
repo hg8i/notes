@@ -16,6 +16,9 @@ def main(screen):
         os.makedirs(settings["delPath"])
 
     indexPath = settings["indexPath"]
+    if "-h" in sys.argv:
+        print("-p to remake pickle")
+        quit()
     if "-p" in sys.argv:
         index = noteindex(loadPickle=0,picklePath=indexPath)
         index.pickleWrite()

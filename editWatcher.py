@@ -14,6 +14,11 @@ class editwatcher:
         self._tmpDir = tmpDir
         log(f"editwatcher: startup for {tmpDir}")
 
+        # messages for tracking anomalies in file size
+        base = os.path.basename(tmpDir)
+        self._anomalies = []
+        self._anomaliesLogPath = os.path.join(settings["tmpPath"],f"anomalies-{base}.txt")
+
         self._trackedFilesModTimes = defaultdict(int)
         self._trackedFilesSyncedTimes = defaultdict(int)
         self.updateListOfFiles()
@@ -29,6 +34,12 @@ class editwatcher:
         # self._lastNoteModTime = self.getNoteModTime()
 
         # self._outputq.put({"message":"Started Edit Watcher"})
+
+    def _safeFileSize(self,path):
+        if os.path.exists(path):
+            return os.path.getsize(path)
+        else:
+            return -1
 
     def now(self):
         return datetime.now().strftime("%d/%m/%y %H:%M::%S")
@@ -61,21 +72,38 @@ class editwatcher:
             # update modification time
             self._trackedFilesModTimes[c] = os.path.getmtime(c)
 
+    def dumpAnomaliesLog(self):
+        output = open(self._anomaliesLogPath,"w")
+        for message in self._anomalies:
+            output.write(message+"\n")
+        output.close()
+
+
     def run(self):
         while True:
 
-            # check queue for instructions
-            if self._input.qsize():
-                update = self._input.get()
-                if update["type"] == "close":
-                    finalCopy = self.sync()
-                    self._outputq.put({"message":f"Updated remote file. {self._nSyncs} syncs, {self._nCopies} copies. Final sync: {finalCopy}"})
-                    return
+            if True:
+            # try:
 
-            # check directory for updates
-            self.updateListOfFiles()
-            self.sync()
-            time.sleep(1)
+                # check queue for instructions
+                if self._input.qsize():
+                    update = self._input.get()
+                    if update["type"] == "close":
+                        finalCopy = self.sync()
+                        if len(self._anomalies):
+                            self._outputq.put({"message":f"ERROR: {len(self._anomalies)} file anomalies. See log. {self._nSyncs} syncs, {self._nCopies} copies. Final sync: {finalCopy}"})
+                            self.dumpAnomaliesLog()
+                        else:
+                            self._outputq.put({"message":f"Updated remote file. {self._nSyncs} syncs, {self._nCopies} copies. Final sync: {finalCopy}"})
+                        return
+
+                # check directory for updates
+                self.updateListOfFiles()
+                self.sync()
+                time.sleep(1)
+
+            # except:
+            #     self._anomalies.append(f"{self.now()} Edit Watcher Crashed")
 
 
     def sync(self):
@@ -84,19 +112,25 @@ class editwatcher:
         nSync = 0
 
 
-        for c in self._trackedFilesSyncedTimes.keys():
-            modTime  = self._trackedFilesModTimes[c]
-            syncTime = self._trackedFilesSyncedTimes[c]
-            tmpPath = c
+        for tmpFile in self._trackedFilesSyncedTimes.keys():
+            modTime  = self._trackedFilesModTimes[tmpFile]
+            syncTime = self._trackedFilesSyncedTimes[tmpFile]
+
+            # if self._safeFileSize(tmpFile)<=0:
+            #     self._anomalies.append(f"{self.now()} Issue with temporary local file, size: {self._safeFileSize(tmpFile)} bytes: {tmpFile}.")
 
             if modTime>syncTime:
                 self._nCopies+=1
-                cmd = f"cp {c} {self.tmpToRemote(c)}"
+                remoteFile = self.tmpToRemote(tmpFile)
+                cmd = f"cp {tmpFile} {remoteFile}"
                 cp = os.popen(cmd).read()
-                # log(f"editwatcher {self._iLog}: copy {c} {self.tmpToRemote(c)}, because {modTime}>{syncTime}")
+                # log(f"editwatcher {self._iLog}: copy {tmpFile} {self.tmpToRemote(tmpFile)}, because {modTime}>{syncTime}")
                 self._iLog+=1
                 nSync+=1
-                self._trackedFilesSyncedTimes[c] = time.time()
+                self._trackedFilesSyncedTimes[tmpFile] = time.time()
+
+                if self._safeFileSize(remoteFile)<=0:
+                    self._anomalies.append(f"{self.now()} Issue with remote file, size: {self._safeFileSize(remoteFile)} bytes: {remoteFile}.")
 
                 # update modification time
                 # this is just in case the editor is quit without returning to the main thread
@@ -107,10 +141,13 @@ class editwatcher:
                 meta["modified"] = self.now()
                 json.dump(meta,open(metaPath,"w"),indent=4)
 
+                if self._safeFileSize(metaPath)<=0:
+                    self._anomalies.append(f"{self.now()} Issue with remote meta file, size: {self._safeFileSize(metaPath)} bytes: {metaPath}.")
 
 
 
         return nSync
 
 
-
+if __name__=="__main__":
+    print(settings.keys())

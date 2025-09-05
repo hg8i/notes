@@ -204,7 +204,7 @@ class noteindex:
         path = self.getPath(shortname)
         basename = os.path.basename(path)
         newpath = os.path.join(settings["delPath"],basename)
-        os.popen(f"mv {path} {newpath}")
+        os.popen(f"cp -r {path} {newpath} && rm -r {path}")
 
         # remove from index
         del self.data[shortname]
