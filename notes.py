@@ -16,9 +16,6 @@ def main(screen):
         os.makedirs(settings["delPath"])
 
     indexPath = settings["indexPath"]
-    if "-h" in sys.argv:
-        print("-p to remake pickle")
-        quit()
     if "-p" in sys.argv:
         index = noteindex(loadPickle=0,picklePath=indexPath)
         index.pickleWrite()
@@ -34,6 +31,11 @@ def main(screen):
     m.run()
 
 if __name__=="__main__":
+    multiprocessing.set_start_method("fork")
+    if "-h" in sys.argv:
+        print("-p to remake pickle")
+        quit()
+
     wrapper(main)
     # main(None)
 
